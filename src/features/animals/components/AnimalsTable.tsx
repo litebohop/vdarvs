@@ -1,0 +1,75 @@
+"use client";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useAnimals } from "@/features/animals/hooks/useAnimals";
+import { PageHeader } from "@/components/shared/page-header";
+import { SearchInput, useTableParams } from "@/components/shared/search-input";
+import { PageSkeleton } from "@/components/shared/page-skeleton";
+import { EmptyState, ErrorState } from "@/components/shared/empty-state";
+import { StatusBadge } from "@/components/shared/status-badge";
+import { format } from "date-fns";
+export function AnimalsTable() {
+  const { search, setSearch, setPage, params } = useTableParams();
+  const { data, isLoading, isError, refetch } = useAnimals(params);
+
+  if (isLoading) return <PageSkeleton />;
+  if (isError) return <ErrorState onRetry={() => refetch()} />;
+
+  const animals = data?.data ?? [];
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Animal Registry"
+        description="Livestock and animal registration for village administration"
+      />
+      <SearchInput
+        value={search}
+        onChange={(v) => { setSearch(v); setPage(1); }}
+        placeholder="Search by tag, owner, or species..."
+        className="max-w-sm"
+      />
+      {animals.length === 0 ? (
+        <EmptyState title="No animals registered" />
+      ) : (
+        <div className="rounded-xl border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Tag Number</TableHead>
+                <TableHead>Species</TableHead>
+                <TableHead>Breed</TableHead>
+                <TableHead>Owner</TableHead>
+                <TableHead>Village</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Registered</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {animals.map((animal) => (
+                <TableRow key={animal.id}>
+                  <TableCell className="font-mono text-xs">{animal.tagNumber}</TableCell>
+                  <TableCell className="capitalize">{animal.species}</TableCell>
+                  <TableCell>{animal.breed}</TableCell>
+                  <TableCell>{animal.ownerName}</TableCell>
+                  <TableCell>{animal.village}</TableCell>
+                  <TableCell><StatusBadge status={animal.status} /></TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {format(new Date(animal.registeredAt), "dd MMM yyyy")}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
+  );
+}
