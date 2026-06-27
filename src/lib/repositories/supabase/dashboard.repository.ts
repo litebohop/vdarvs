@@ -13,6 +13,7 @@ export const supabaseNotificationRepository = {
 
 export const supabaseAuditRepository = {
   findAll: dashboardQueries.fetchAuditLogs,
+  create: dashboardQueries.insertAuditLog,
 };
 
 export const supabaseUsersRepository = {

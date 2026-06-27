@@ -1,52 +1,42 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Shield, Loader2 } from "lucide-react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/providers/auth-provider";
-import { USER_ROLES } from "@/constants/roles";
-import type { UserRole } from "@/types/common.types";
-import { MOCK_USERS } from "@/lib/mock-data";
 import { appConfig } from "@/config/app.config";
 import { toast } from "sonner";
 
+const loginSchema = z.object({
+  email: z.string().email("Enter a valid email"),
+  password: z.string().min(1, "Password is required"),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
+
 export function LoginForm() {
-  const [email, setEmail] = useState("chief.masianokeng@vdarvs.gov.ls");
-  const [role, setRole] = useState<UserRole>("village_chief");
-  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const onSubmit = async (values: LoginFormValues) => {
     try {
-      await login(email, role);
-      toast.success(`Signed in as ${USER_ROLES[role].label}`);
+      await login(values.email, values.password);
+      toast.success("Signed in");
       router.push("/dashboard");
     } catch {
-      toast.error("Invalid credentials");
-    } finally {
-      setLoading(false);
+      toast.error("Invalid email or password");
     }
-  };
-
-  const quickLogin = (userEmail: string) => {
-    setEmail(userEmail);
-    const user = MOCK_USERS.find((u) => u.email === userEmail);
-    if (user) setRole(user.role);
   };
 
   return (
@@ -75,64 +65,50 @@ export function LoginForm() {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl">Sign in</CardTitle>
             <CardDescription>
-              Prototype demo: select a role to explore the system
+              Use your VDARVS account to access the system
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  autoComplete="email"
+                  {...form.register("email")}
                 />
+                {form.formState.errors.email && (
+                  <p className="text-xs text-destructive">
+                    {form.formState.errors.email.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="role">Role (demo)</Label>
-                <Select
-                  value={role}
-                  onValueChange={(v) => setRole(v as UserRole)}
-                >
-                  <SelectTrigger id="role">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(Object.keys(USER_ROLES) as UserRole[]).map((r) => (
-                      <SelectItem key={r} value={r}>
-                        {USER_ROLES[r].label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  {...form.register("password")}
+                />
+                {form.formState.errors.password && (
+                  <p className="text-xs text-destructive">
+                    {form.formState.errors.password.message}
+                  </p>
+                )}
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={form.formState.isSubmitting}
+              >
+                {form.formState.isSubmitting && (
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                )}
                 Sign in
               </Button>
             </form>
-
-            <div className="mt-6 space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">
-                Quick demo accounts
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {MOCK_USERS.map((user) => (
-                  <Button
-                    key={user.id}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="text-xs"
-                    onClick={() => quickLogin(user.email)}
-                  >
-                    {USER_ROLES[user.role].label}
-                  </Button>
-                ))}
-              </div>
-            </div>
 
             <p className="mt-6 text-center text-sm text-muted-foreground">
               <Link href="/" className="underline hover:text-foreground">

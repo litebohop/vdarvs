@@ -2,24 +2,25 @@
 
 import type { User } from "@/types/entities.types";
 import type { UserRole } from "@/types/common.types";
-import { MOCK_USERS } from "@/lib/mock-data";
+import { createClient } from "@/lib/supabase/client";
+import { fetchProfileById } from "@/lib/supabase/queries/dashboard";
 import {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
-
-const AUTH_STORAGE_KEY = "vdarvs-auth-user";
+import type { Session } from "@supabase/supabase-js";
 
 interface AuthContextValue {
   user: User | null;
+  role: UserRole | null;
   isLoading: boolean;
-  login: (email: string, role?: UserRole) => Promise<void>;
-  logout: () => void;
-  switchRole: (role: UserRole) => void;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -27,56 +28,81 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const supabaseRef = useRef(createClient());
 
   useEffect(() => {
-    const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (stored) {
-      try {
-        setUser(JSON.parse(stored));
-      } catch {
-        localStorage.removeItem(AUTH_STORAGE_KEY);
+    const supabase = supabaseRef.current;
+    let active = true;
+
+    async function loadProfile(session: Session | null) {
+      if (!session?.user) {
+        if (active) setUser(null);
+        return;
       }
+      const profile = await fetchProfileById(session.user.id);
+      if (!active) return;
+      // Fall back to a minimal citizen profile if the row is missing so the
+      // app stays usable, but the role always comes from the database.
+      setUser(
+        profile ?? {
+          id: session.user.id,
+          email: session.user.email ?? "",
+          fullName: session.user.email ?? "Unknown user",
+          role: "citizen",
+          createdAt: session.user.created_at ?? new Date().toISOString(),
+        },
+      );
     }
-    setIsLoading(false);
+
+    supabase.auth
+      .getSession()
+      .then(async ({ data }) => {
+        await loadProfile(data.session);
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      void loadProfile(session);
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const persistUser = useCallback((nextUser: User | null) => {
-    setUser(nextUser);
-    if (nextUser) {
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(nextUser));
-      document.cookie = `vdarvs-role=${nextUser.role};path=/;max-age=86400`;
-    } else {
-      localStorage.removeItem(AUTH_STORAGE_KEY);
-      document.cookie = "vdarvs-role=;path=/;max-age=0";
-    }
+  const login = useCallback(async (email: string, password: string) => {
+    const supabase = supabaseRef.current;
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throw new Error(error.message);
+    const profile = await fetchProfileById(data.user.id);
+    setUser(
+      profile ?? {
+        id: data.user.id,
+        email: data.user.email ?? "",
+        fullName: data.user.email ?? "Unknown user",
+        role: "citizen",
+        createdAt: data.user.created_at ?? new Date().toISOString(),
+      },
+    );
   }, []);
 
-  const login = useCallback(
-    async (email: string, role?: UserRole) => {
-      const found =
-        MOCK_USERS.find((u) => u.email === email) ??
-        MOCK_USERS.find((u) => u.role === (role ?? "village_chief"));
-      if (!found) throw new Error("Invalid credentials");
-      persistUser(role ? { ...found, role } : found);
-    },
-    [persistUser],
-  );
-
-  const logout = useCallback(() => {
-    persistUser(null);
-  }, [persistUser]);
-
-  const switchRole = useCallback(
-    (role: UserRole) => {
-      const base = MOCK_USERS.find((u) => u.role === role);
-      if (base) persistUser(base);
-    },
-    [persistUser],
-  );
+  const logout = useCallback(async () => {
+    const supabase = supabaseRef.current;
+    await supabase.auth.signOut();
+    setUser(null);
+  }, []);
 
   const value = useMemo(
-    () => ({ user, isLoading, login, logout, switchRole }),
-    [user, isLoading, login, logout, switchRole],
+    () => ({ user, role: user?.role ?? null, isLoading, login, logout }),
+    [user, isLoading, login, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

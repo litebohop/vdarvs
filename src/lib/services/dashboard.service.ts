@@ -1,4 +1,5 @@
 import type { PaginationParams } from "@/types/common.types";
+import type { AuditLog } from "@/types/entities.types";
 import {
   dashboardRepository,
   notificationRepository,
@@ -17,7 +18,15 @@ export const notificationService = {
   markAsRead: (id: string) => notificationRepository.markAsRead(id),
 };
 
+export type AuditActor = {
+  userId: string;
+  userName: string;
+};
+
 export const auditService = {
   getAuditLogs: (params?: PaginationParams) =>
     auditRepository.findAll(params),
+
+  createAuditLog: (entry: Omit<AuditLog, "id" | "createdAt">) =>
+    auditRepository.create(entry),
 };

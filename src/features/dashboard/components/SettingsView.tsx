@@ -32,15 +32,6 @@ export function SettingsView() {
                 <p className="text-sm text-muted-foreground">{appConfig.country}</p>
               </div>
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Prototype Mode</Label>
-                <p className="text-sm text-muted-foreground">
-                  Using mock data repositories
-                </p>
-              </div>
-              <Switch checked={appConfig.useMockData} disabled />
-            </div>
           </CardContent>
         </Card>
         <Card>

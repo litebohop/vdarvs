@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { updateSession } from "@/lib/supabase/middleware";
 
 const PUBLIC_ROUTES = ["/", "/login"];
 
@@ -14,32 +15,54 @@ const ROLE_ROUTES: Record<string, string[]> = {
   "/audit-logs": ["administrator", "district_officer"],
 };
 
-export function middleware(request: NextRequest) {
+function redirectTo(request: NextRequest, pathname: string, response: NextResponse) {
+  const url = request.nextUrl.clone();
+  url.pathname = pathname;
+  const redirect = NextResponse.redirect(url);
+  // Preserve any refreshed auth cookies on the redirect response.
+  response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+  return redirect;
+}
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (
-    PUBLIC_ROUTES.includes(pathname) ||
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/api")
-  ) {
+  if (pathname.startsWith("/_next") || pathname.startsWith("/api")) {
     return NextResponse.next();
   }
 
-  const role = request.cookies.get("vdarvs-role")?.value;
+  const { supabase, response } = updateSession(request);
 
-  if (!role && pathname !== "/login") {
-    return NextResponse.redirect(new URL("/login", request.url));
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const isPublic = PUBLIC_ROUTES.includes(pathname);
+
+  if (!user) {
+    return isPublic ? response : redirectTo(request, "/login", response);
   }
+
+  // Authenticated user is allowed on public routes (no role check needed).
+  if (isPublic) return response;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const role = profile?.role as string | undefined;
 
   for (const [route, allowedRoles] of Object.entries(ROLE_ROUTES)) {
     if (pathname === route || pathname.startsWith(`${route}/`)) {
-      if (role && !allowedRoles.includes(role)) {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
+      if (!role || !allowedRoles.includes(role)) {
+        return redirectTo(request, "/dashboard", response);
       }
     }
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

@@ -9,8 +9,6 @@ import {
 } from "@/lib/services/dashboard.service";
 import { queryKeys } from "@/lib/query-keys";
 import { useAuth } from "@/providers/auth-provider";
-import { appConfig } from "@/config/app.config";
-import { MOCK_USERS } from "@/lib/mock-data";
 import { supabaseUsersRepository } from "@/lib/repositories/supabase/dashboard.repository";
 
 export function useDashboardStats() {
@@ -55,11 +53,6 @@ import type { User } from "@/types/entities.types";
 export function useUsers() {
   return useQuery<{ data: User[]; total: number }>({
     queryKey: queryKeys.users.list,
-    queryFn: async () => {
-      if (appConfig.useMockData) {
-        return { data: MOCK_USERS, total: MOCK_USERS.length };
-      }
-      return supabaseUsersRepository.findAll();
-    },
+    queryFn: () => supabaseUsersRepository.findAll(),
   });
 }

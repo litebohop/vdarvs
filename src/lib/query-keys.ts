@@ -51,4 +51,8 @@ export const queryKeys = {
   users: {
     list: ["users", "list"] as const,
   },
+  chiefs: {
+    all: ["chiefs"] as const,
+    list: ["chiefs", "list"] as const,
+  },
 } as const;

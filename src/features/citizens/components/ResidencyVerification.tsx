@@ -78,7 +78,10 @@ export function ResidencyVerification() {
                           size="sm"
                           disabled={verify.isPending}
                           onClick={() =>
-                            verify.mutate({ id: req.id, reviewedBy: user.fullName })
+                            verify.mutate({
+                              id: req.id,
+                              actor: { userId: user.id, userName: user.fullName },
+                            })
                           }
                         >
                           <Check className="mr-1 size-3" />
@@ -89,7 +92,10 @@ export function ResidencyVerification() {
                           variant="outline"
                           disabled={reject.isPending}
                           onClick={() =>
-                            reject.mutate({ id: req.id, reviewedBy: user.fullName })
+                            reject.mutate({
+                              id: req.id,
+                              actor: { userId: user.id, userName: user.fullName },
+                            })
                           }
                         >
                           <X className="mr-1 size-3" />

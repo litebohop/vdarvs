@@ -34,6 +34,16 @@ export const verificationStatusEnum = pgEnum("verification_status", [
 
 export const genderEnum = pgEnum("gender", ["male", "female", "other"]);
 
+export const chiefs = pgTable("chiefs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  village: text("village").notNull(),
+  district: text("district").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export const profiles = pgTable("profiles", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull().unique(),
@@ -41,7 +51,7 @@ export const profiles = pgTable("profiles", {
   role: userRoleEnum("role").notNull().default("citizen"),
   village: text("village"),
   district: text("district"),
-  chiefId: uuid("chief_id"),
+  chiefId: uuid("chief_id").references(() => chiefs.id),
   phone: text("phone"),
   avatarUrl: text("avatar_url"),
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -65,7 +75,9 @@ export const citizens = pgTable("citizens", {
   communityCouncil: text("community_council"),
   district: text("district").notNull(),
   poBox: text("po_box"),
-  chiefId: uuid("chief_id").notNull(),
+  chiefId: uuid("chief_id")
+    .notNull()
+    .references(() => chiefs.id),
   verificationStatus: verificationStatusEnum("verification_status")
     .notNull()
     .default("unverified"),
@@ -106,7 +118,9 @@ export const landRecords = pgTable("land_records", {
   district: text("district").notNull(),
   landType: text("land_type").notNull(),
   sizeHectares: real("size_hectares").notNull(),
-  chiefId: uuid("chief_id").notNull(),
+  chiefId: uuid("chief_id")
+    .notNull()
+    .references(() => chiefs.id),
   status: recordStatusEnum("status").notNull().default("pending"),
   description: text("description"),
   registeredAt: timestamp("registered_at", { withTimezone: true })
@@ -143,7 +157,9 @@ export const disputes = pgTable("disputes", {
   respondentName: text("respondent_name").notNull(),
   village: text("village").notNull(),
   district: text("district").notNull(),
-  chiefId: uuid("chief_id").notNull(),
+  chiefId: uuid("chief_id")
+    .notNull()
+    .references(() => chiefs.id),
   category: text("category").notNull(),
   status: recordStatusEnum("status").notNull().default("pending"),
   filedAt: timestamp("filed_at", { withTimezone: true }).notNull().defaultNow(),
@@ -183,7 +199,9 @@ export const residencyRequests = pgTable("residency_requests", {
   citizenId: uuid("citizen_id")
     .notNull()
     .references(() => citizens.id),
-  chiefId: uuid("chief_id").notNull(),
+  chiefId: uuid("chief_id")
+    .notNull()
+    .references(() => chiefs.id),
   status: verificationStatusEnum("status").notNull().default("pending"),
   notes: text("notes"),
   requestedAt: timestamp("requested_at", { withTimezone: true })

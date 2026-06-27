@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-header";
 import { DISTRICTS, COMMUNITY_COUNCILS, VILLAGES } from "@/constants/lesotho";
+import { useCreateCitizen, useChiefs } from "@/features/citizens/hooks/useCitizens";
+import { chiefService } from "@/lib/services/chief.service";
+import { useAuth } from "@/providers/auth-provider";
 import { toast } from "sonner";
 
 const citizenSchema = z.object({
@@ -38,6 +41,9 @@ type CitizenFormValues = z.infer<typeof citizenSchema>;
 
 export function CitizenRegistrationForm() {
   const router = useRouter();
+  const { user } = useAuth();
+  const createCitizen = useCreateCitizen();
+  const { data: chiefs } = useChiefs();
   const form = useForm<CitizenFormValues>({
     resolver: zodResolver(citizenSchema),
     defaultValues: {
@@ -53,10 +59,47 @@ export function CitizenRegistrationForm() {
   const villages = selectedCouncil ? VILLAGES[selectedCouncil] ?? [] : [];
 
   const onSubmit = (values: CitizenFormValues) => {
-    toast.success(
-      `Citizen ${values.firstName} ${values.lastName} registered (prototype)`,
+    if (!user) {
+      toast.error("You must be signed in to register a citizen");
+      return;
+    }
+
+    const chief = chiefService.resolveChiefForLocation(
+      chiefs ?? [],
+      values.village,
+      values.district,
     );
-    router.push("/citizens");
+    if (!chief) {
+      toast.error("No village chief is available to assign this citizen to");
+      return;
+    }
+
+    createCitizen.mutate(
+      {
+        data: {
+          nationalId: values.nationalId,
+          firstName: values.firstName,
+          lastName: values.lastName,
+          dateOfBirth: values.dateOfBirth,
+          gender: values.gender,
+          phone: values.phone,
+          email: values.email || undefined,
+          address: {
+            village: values.village,
+            communityCouncil: values.communityCouncil || undefined,
+            district: values.district,
+            poBox: values.poBox || undefined,
+          },
+          chiefId: chief.id,
+          verificationStatus: "pending",
+          status: "pending",
+        },
+        actor: { userId: user.id, userName: user.fullName },
+      },
+      {
+        onSuccess: () => router.push("/citizens"),
+      },
+    );
   };
 
   return (
@@ -210,7 +253,12 @@ export function CitizenRegistrationForm() {
             </div>
 
             <div className="flex gap-3">
-              <Button type="submit">Register Citizen</Button>
+              <Button type="submit" disabled={createCitizen.isPending}>
+                {createCitizen.isPending && (
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                )}
+                Register Citizen
+              </Button>
               <Button type="button" variant="outline" asChild>
                 <Link href="/citizens">Cancel</Link>
               </Button>

@@ -7,6 +7,7 @@ import type {
   User,
 } from "@/types/entities.types";
 import type { UserRole } from "@/types/common.types";
+import type { AuditLog } from "@/types/entities.types";
 import { mapNotification, mapAuditLog, type DbNotification, type DbAuditLog } from "@/lib/supabase/mappers";
 import {
   buildPaginatedResult,
@@ -173,6 +174,57 @@ export async function fetchAuditLogs(params?: PaginationParams) {
   );
 }
 
+export async function insertAuditLog(
+  entry: Omit<AuditLog, "id" | "createdAt">,
+): Promise<AuditLog> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("audit_logs")
+    .insert({
+      user_id: entry.userId,
+      user_name: entry.userName,
+      action: entry.action,
+      entity: entry.entity,
+      entity_id: entry.entityId,
+      details: entry.details,
+      village: entry.village ?? null,
+      district: entry.district ?? null,
+    })
+    .select("*")
+    .single();
+
+  if (error) throw new Error(error.message);
+  return mapAuditLog(data as DbAuditLog);
+}
+
+type DbProfile = {
+  id: string;
+  email: string;
+  full_name: string;
+  role: UserRole;
+  village: string | null;
+  district: string | null;
+  chief_id: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+  created_at: string;
+};
+
+function mapProfile(row: DbProfile): User {
+  return {
+    id: row.id,
+    email: row.email,
+    fullName: row.full_name,
+    role: row.role,
+    village: row.village ?? undefined,
+    district: row.district ?? undefined,
+    chiefId: row.chief_id ?? undefined,
+    phone: row.phone ?? undefined,
+    avatarUrl: row.avatar_url ?? undefined,
+    createdAt: row.created_at,
+  };
+}
+
 export async function fetchProfiles() {
   const supabase = createClient();
   const { data, error, count } = await supabase
@@ -182,20 +234,19 @@ export async function fetchProfiles() {
   if (error) throw new Error(error.message);
 
   return {
-    data: (data ?? []).map(
-      (row): User => ({
-        id: row.id,
-        email: row.email,
-        fullName: row.full_name,
-        role: row.role as UserRole,
-        village: row.village ?? undefined,
-        district: row.district ?? undefined,
-        chiefId: row.chief_id ?? undefined,
-        phone: row.phone ?? undefined,
-        avatarUrl: row.avatar_url ?? undefined,
-        createdAt: row.created_at,
-      }),
-    ),
+    data: (data as DbProfile[] | null ?? []).map(mapProfile),
     total: count ?? 0,
   };
+}
+
+export async function fetchProfileById(id: string): Promise<User | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return data ? mapProfile(data as DbProfile) : null;
 }

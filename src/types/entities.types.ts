@@ -111,6 +111,13 @@ export interface AuditLog {
   createdAt: string;
 }
 
+export interface Chief {
+  id: string;
+  name: string;
+  village: string;
+  district: string;
+}
+
 export interface User {
   id: string;
   email: string;

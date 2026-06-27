@@ -6,7 +6,24 @@ import type {
   Dispute,
   Notification,
   AuditLog,
+  Chief,
 } from "@/types/entities.types";
+
+export type DbChief = {
+  id: string;
+  name: string;
+  village: string;
+  district: string;
+};
+
+export function mapChief(row: DbChief): Chief {
+  return {
+    id: row.id,
+    name: row.name,
+    village: row.village,
+    district: row.district,
+  };
+}
 
 export type DbCitizen = {
   id: string;

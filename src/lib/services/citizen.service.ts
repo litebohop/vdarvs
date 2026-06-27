@@ -1,6 +1,7 @@
 import type { PaginationParams } from "@/types/common.types";
 import type { Citizen } from "@/types/entities.types";
 import { citizenRepository } from "@/lib/repositories/citizen.repository";
+import { auditService, type AuditActor } from "@/lib/services/dashboard.service";
 
 export const citizenService = {
   getCitizens(params?: PaginationParams) {
@@ -11,8 +12,22 @@ export const citizenService = {
     return citizenRepository.findById(id);
   },
 
-  registerCitizen(data: Omit<Citizen, "id" | "registeredAt" | "updatedAt">) {
-    return citizenRepository.create(data);
+  async registerCitizen(
+    data: Omit<Citizen, "id" | "registeredAt" | "updatedAt">,
+    actor: AuditActor,
+  ) {
+    const citizen = await citizenRepository.create(data);
+    await auditService.createAuditLog({
+      userId: actor.userId,
+      userName: actor.userName,
+      action: "CREATE",
+      entity: "citizen",
+      entityId: citizen.id,
+      details: `Registered new citizen ${citizen.firstName} ${citizen.lastName}`,
+      village: citizen.address.village,
+      district: citizen.address.district,
+    });
+    return citizen;
   },
 
   updateCitizen(id: string, data: Partial<Citizen>) {
@@ -23,11 +38,41 @@ export const citizenService = {
     return citizenRepository.getResidencyRequests(params);
   },
 
-  verifyResidency(id: string, reviewedBy: string) {
-    return citizenRepository.updateResidencyStatus(id, "verified", reviewedBy);
+  async verifyResidency(id: string, actor: AuditActor) {
+    const request = await citizenRepository.updateResidencyStatus(
+      id,
+      "verified",
+      actor.userName,
+    );
+    await auditService.createAuditLog({
+      userId: actor.userId,
+      userName: actor.userName,
+      action: "VERIFY",
+      entity: "residency",
+      entityId: id,
+      details: `Verified residency for ${request.citizenName}`,
+      village: request.village,
+      district: request.district,
+    });
+    return request;
   },
 
-  rejectResidency(id: string, reviewedBy: string) {
-    return citizenRepository.updateResidencyStatus(id, "rejected", reviewedBy);
+  async rejectResidency(id: string, actor: AuditActor) {
+    const request = await citizenRepository.updateResidencyStatus(
+      id,
+      "rejected",
+      actor.userName,
+    );
+    await auditService.createAuditLog({
+      userId: actor.userId,
+      userName: actor.userName,
+      action: "REJECT",
+      entity: "residency",
+      entityId: id,
+      details: `Rejected residency request for ${request.citizenName}`,
+      village: request.village,
+      district: request.district,
+    });
+    return request;
   },
 };
