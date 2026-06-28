@@ -210,3 +210,20 @@ export const residencyRequests = pgTable("residency_requests", {
   reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
   reviewedBy: text("reviewed_by"),
 });
+
+export const roleRequests = pgTable("role_requests", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => profiles.id),
+  requestedRole: userRoleEnum("requested_role").notNull(),
+  reason: text("reason").notNull(),
+  village: text("village"),
+  district: text("district"),
+  status: recordStatusEnum("status").notNull().default("pending"),
+  requestedAt: timestamp("requested_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  reviewedBy: text("reviewed_by"),
+});

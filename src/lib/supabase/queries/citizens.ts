@@ -133,3 +133,17 @@ export async function updateResidencyStatus(
 
   return mapResidencyRequest(data as DbResidencyRequest);
 }
+
+export async function insertResidencyRequest(
+  citizenId: string,
+  chiefId: string,
+): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.from("residency_requests").insert({
+    citizen_id: citizenId,
+    chief_id: chiefId,
+    status: "pending",
+  });
+
+  if (error) throw new Error(error.message);
+}

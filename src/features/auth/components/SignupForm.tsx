@@ -9,34 +9,57 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { useAuth } from "@/providers/auth-provider";
 import { appConfig } from "@/config/app.config";
 import { toast } from "sonner";
 
-const loginSchema = z.object({
-  email: z.string().email("Enter a valid email"),
-  password: z.string().min(1, "Password is required"),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
-
-export function LoginForm() {
-  const { login } = useAuth();
-  const router = useRouter();
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
+const signupSchema = z
+  .object({
+    fullName: z.string().min(2, "Full name is required"),
+    email: z.string().email("Enter a valid email"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
   });
 
-  const onSubmit = async (values: LoginFormValues) => {
+type SignupFormValues = z.infer<typeof signupSchema>;
+
+export function SignupForm() {
+  const { signup } = useAuth();
+  const router = useRouter();
+  const form = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  const onSubmit = async (values: SignupFormValues) => {
     try {
-      await login(values.email, values.password);
-      toast.success("Signed in");
-      router.push("/dashboard");
+      const result = await signup(values.email, values.password, values.fullName);
+      if (result.needsEmailConfirmation) {
+        toast.success("Check your email to confirm your account");
+        router.push("/login");
+        return;
+      }
+      toast.success("Account created");
+      router.push("/onboarding");
     } catch {
-      toast.error("Invalid email or password");
+      toast.error("Could not create account. Try a different email.");
     }
   };
 
@@ -52,11 +75,11 @@ export function LoginForm() {
         </div>
         <div className="space-y-4">
           <h1 className="text-4xl font-bold leading-tight">
-            Village Digital Administration for Lesotho
+            Join VDARVS
           </h1>
           <p className="text-lg text-primary-foreground/80">
-            Digitize citizen registration, residency verification, land records,
-            and dispute resolution through Village Chiefs.
+            Create an account, then apply as a citizen or request staff access
+            for your village.
           </p>
         </div>
         <p className="text-sm text-primary-foreground/60">
@@ -67,13 +90,22 @@ export function LoginForm() {
       <div className="flex flex-1 items-center justify-center bg-background p-8">
         <Card className="w-full max-w-md border shadow-sm">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl">Sign in</CardTitle>
+            <CardTitle className="text-2xl">Create account</CardTitle>
             <CardDescription>
-              Use your VDARVS account to access the system
+              Sign up to access the Village Digital Administrative Records system
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Full name</Label>
+                <Input id="fullName" {...form.register("fullName")} />
+                {form.formState.errors.fullName && (
+                  <p className="text-xs text-destructive">
+                    {form.formState.errors.fullName.message}
+                  </p>
+                )}
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -93,12 +125,26 @@ export function LoginForm() {
                 <Input
                   id="password"
                   type="password"
-                  autoComplete="current-password"
+                  autoComplete="new-password"
                   {...form.register("password")}
                 />
                 {form.formState.errors.password && (
                   <p className="text-xs text-destructive">
                     {form.formState.errors.password.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  {...form.register("confirmPassword")}
+                />
+                {form.formState.errors.confirmPassword && (
+                  <p className="text-xs text-destructive">
+                    {form.formState.errors.confirmPassword.message}
                   </p>
                 )}
               </div>
@@ -110,18 +156,14 @@ export function LoginForm() {
                 {form.formState.isSubmitting && (
                   <Loader2 className="mr-2 size-4 animate-spin" />
                 )}
-                Sign in
+                Create account
               </Button>
             </form>
 
             <p className="mt-6 text-center text-sm text-muted-foreground">
-              Don&apos;t have an account?{" "}
-              <Link href="/signup" className="underline hover:text-foreground">
-                Sign up
-              </Link>
-              {" · "}
-              <Link href="/" className="underline hover:text-foreground">
-                Back to home
+              Already have an account?{" "}
+              <Link href="/login" className="underline hover:text-foreground">
+                Sign in
               </Link>
             </p>
           </CardContent>

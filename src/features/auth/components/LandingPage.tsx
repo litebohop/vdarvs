@@ -46,7 +46,7 @@ export function LandingPage() {
               <Link href="/login">Sign in</Link>
             </Button>
             <Button asChild>
-              <Link href="/login">
+              <Link href="/signup">
                 Get started
                 <ArrowRight className="ml-2 size-4" />
               </Link>
@@ -70,7 +70,7 @@ export function LandingPage() {
           </p>
           <div className="mt-10 flex justify-center gap-4">
             <Button size="lg" asChild>
-              <Link href="/login">Launch Prototype</Link>
+              <Link href="/signup">Get started</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link href="/login">Sign in</Link>

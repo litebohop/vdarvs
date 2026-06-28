@@ -55,4 +55,7 @@ export const queryKeys = {
     all: ["chiefs"] as const,
     list: ["chiefs", "list"] as const,
   },
+  roleRequests: {
+    latest: (userId: string) => ["role-requests", "latest", userId] as const,
+  },
 } as const;

@@ -171,3 +171,16 @@ export interface ResidencyRequest {
   reviewedBy?: string;
   notes?: string;
 }
+
+export interface RoleRequest {
+  id: string;
+  userId: string;
+  requestedRole: UserRole;
+  reason: string;
+  village?: string;
+  district?: string;
+  status: RecordStatus;
+  requestedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+}

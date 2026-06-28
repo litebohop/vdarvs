@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
-const PUBLIC_ROUTES = ["/", "/login"];
+const PUBLIC_ROUTES = ["/", "/login", "/signup"];
 
 const ROLE_ROUTES: Record<string, string[]> = {
   "/citizens": ["village_staff", "village_chief", "district_officer", "administrator"],
@@ -41,6 +41,10 @@ export async function middleware(request: NextRequest) {
 
   if (!user) {
     return isPublic ? response : redirectTo(request, "/login", response);
+  }
+
+  if (user && (pathname === "/login" || pathname === "/signup")) {
+    return redirectTo(request, "/dashboard", response);
   }
 
   // Authenticated user is allowed on public routes (no role check needed).

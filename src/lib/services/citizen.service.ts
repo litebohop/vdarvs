@@ -2,6 +2,7 @@ import type { PaginationParams } from "@/types/common.types";
 import type { Citizen } from "@/types/entities.types";
 import { citizenRepository } from "@/lib/repositories/citizen.repository";
 import { auditService, type AuditActor } from "@/lib/services/dashboard.service";
+import { updateProfile } from "@/lib/supabase/queries/profiles";
 
 export const citizenService = {
   getCitizens(params?: PaginationParams) {
@@ -26,6 +27,20 @@ export const citizenService = {
       details: `Registered new citizen ${citizen.firstName} ${citizen.lastName}`,
       village: citizen.address.village,
       district: citizen.address.district,
+    });
+    return citizen;
+  },
+
+  async applyAsCitizen(
+    data: Omit<Citizen, "id" | "registeredAt" | "updatedAt">,
+    actor: AuditActor,
+  ) {
+    const citizen = await this.registerCitizen(data, actor);
+    await citizenRepository.createResidencyRequest(citizen.id, citizen.chiefId);
+    await updateProfile(actor.userId, {
+      village: citizen.address.village,
+      district: citizen.address.district,
+      phone: citizen.phone,
     });
     return citizen;
   },

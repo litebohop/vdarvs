@@ -68,4 +68,5 @@ export const supabaseCitizenRepository = {
 
   getResidencyRequests: citizenQueries.fetchResidencyRequests,
   updateResidencyStatus: citizenQueries.updateResidencyStatus,
+  createResidencyRequest: citizenQueries.insertResidencyRequest,
 };
