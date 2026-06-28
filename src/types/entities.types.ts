@@ -141,6 +141,16 @@ export interface DashboardStats {
   pendingApprovals: number;
 }
 
+export interface CitizenDashboardSummary {
+  citizen: Citizen | null;
+  pendingDocuments: number;
+  approvedDocuments: number;
+  activeDisputes: number;
+  unreadNotifications: number;
+  recentDocuments: Document[];
+  recentNotifications: Notification[];
+}
+
 export interface ActivityItem {
   id: string;
   type: string;

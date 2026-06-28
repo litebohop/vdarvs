@@ -5,10 +5,11 @@ import type {
   ActivityItem,
   ChartDataPoint,
   User,
+  CitizenDashboardSummary,
 } from "@/types/entities.types";
 import type { UserRole } from "@/types/common.types";
 import type { AuditLog } from "@/types/entities.types";
-import { mapNotification, mapAuditLog, type DbNotification, type DbAuditLog } from "@/lib/supabase/mappers";
+import { mapNotification, mapAuditLog, mapCitizen, mapDocument, type DbNotification, type DbAuditLog, type DbCitizen, type DbDocument } from "@/lib/supabase/mappers";
 import {
   buildPaginatedResult,
   getPaginationRange,
@@ -109,6 +110,104 @@ export async function fetchChartData(): Promise<ChartDataPoint[]> {
     { month: "May", citizens: Math.max(5, base - 1), documents: 18, disputes: 4 },
     { month: "Jun", citizens: base, documents: 4, disputes: 2 },
   ];
+}
+
+export async function fetchCitizenDashboardSummary(
+  userId: string,
+  email: string,
+): Promise<CitizenDashboardSummary> {
+  const supabase = createClient();
+
+  const { count: unreadNotifications } = await supabase
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("read", false);
+
+  const { data: notificationRows } = await supabase
+    .from("notifications")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(3);
+
+  const recentNotifications = (notificationRows as DbNotification[] | null ?? []).map(
+    mapNotification,
+  );
+
+  if (!email) {
+    return {
+      citizen: null,
+      pendingDocuments: 0,
+      approvedDocuments: 0,
+      activeDisputes: 0,
+      unreadNotifications: unreadNotifications ?? 0,
+      recentDocuments: [],
+      recentNotifications,
+    };
+  }
+
+  const { data: citizenRow } = await supabase
+    .from("citizens")
+    .select("*")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (!citizenRow) {
+    return {
+      citizen: null,
+      pendingDocuments: 0,
+      approvedDocuments: 0,
+      activeDisputes: 0,
+      unreadNotifications: unreadNotifications ?? 0,
+      recentDocuments: [],
+      recentNotifications,
+    };
+  }
+
+  const citizen = mapCitizen(citizenRow as DbCitizen);
+  const citizenId = citizen.id;
+
+  const [
+    pendingDocuments,
+    approvedDocuments,
+    activeDisputes,
+    recentDocumentRows,
+  ] = await Promise.all([
+    supabase
+      .from("documents")
+      .select("id", { count: "exact", head: true })
+      .eq("citizen_id", citizenId)
+      .in("status", ["pending", "under_review"]),
+    supabase
+      .from("documents")
+      .select("id", { count: "exact", head: true })
+      .eq("citizen_id", citizenId)
+      .eq("status", "approved"),
+    supabase
+      .from("disputes")
+      .select("id", { count: "exact", head: true })
+      .eq("complainant_id", citizenId)
+      .in("status", ["pending", "under_review"]),
+    supabase
+      .from("documents")
+      .select("*, citizens(first_name, last_name)")
+      .eq("citizen_id", citizenId)
+      .order("requested_at", { ascending: false })
+      .limit(3),
+  ]);
+
+  return {
+    citizen,
+    pendingDocuments: pendingDocuments.count ?? 0,
+    approvedDocuments: approvedDocuments.count ?? 0,
+    activeDisputes: activeDisputes.count ?? 0,
+    unreadNotifications: unreadNotifications ?? 0,
+    recentDocuments: (recentDocumentRows.data as DbDocument[] | null ?? []).map(
+      mapDocument,
+    ),
+    recentNotifications,
+  };
 }
 
 export async function fetchNotifications(

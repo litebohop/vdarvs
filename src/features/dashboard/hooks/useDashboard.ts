@@ -32,6 +32,15 @@ export function useChartData() {
   });
 }
 
+export function useCitizenDashboard() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: queryKeys.dashboard.citizen(user?.id ?? ""),
+    queryFn: () => dashboardService.getCitizenSummary(user!.id, user!.email),
+    enabled: !!user && user.role === "citizen",
+  });
+}
+
 export function useNotifications(params?: PaginationParams) {
   const { user } = useAuth();
   return useQuery({

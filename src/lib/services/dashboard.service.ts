@@ -10,6 +10,8 @@ export const dashboardService = {
   getStats: () => dashboardRepository.getStats(),
   getRecentActivities: () => dashboardRepository.getRecentActivities(),
   getChartData: () => dashboardRepository.getChartData(),
+  getCitizenSummary: (userId: string, email: string) =>
+    dashboardRepository.getCitizenSummary(userId, email),
 };
 
 export const notificationService = {

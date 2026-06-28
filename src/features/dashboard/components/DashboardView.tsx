@@ -27,6 +27,7 @@ import {
   useRecentActivities,
   useChartData,
 } from "@/features/dashboard/hooks/useDashboard";
+import { CitizenDashboardView } from "@/features/dashboard/components/CitizenDashboardView";
 import { PageHeader } from "@/components/shared/page-header";
 import { DashboardSkeleton } from "@/components/shared/page-skeleton";
 import { ErrorState } from "@/components/shared/empty-state";
@@ -52,6 +53,16 @@ const chartConfig = {
 };
 
 export function DashboardView() {
+  const { user } = useAuth();
+
+  if (user?.role === "citizen") {
+    return <CitizenDashboardView />;
+  }
+
+  return <StaffDashboardView />;
+}
+
+function StaffDashboardView() {
   const { user } = useAuth();
   const stats = useDashboardStats();
   const activities = useRecentActivities();

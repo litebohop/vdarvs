@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Shield } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { LogOut, Shield } from "lucide-react";
 import { appConfig } from "@/config/app.config";
 import { getNavForRole } from "@/constants/navigation";
 import { useAuth } from "@/providers/auth-provider";
@@ -25,11 +25,13 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { USER_ROLES } from "@/constants/roles";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 function AppSidebar() {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, logout } = useAuth();
   const role = user?.role ?? "citizen";
   const { main, admin } = getNavForRole(role);
 
@@ -39,6 +41,11 @@ function AppSidebar() {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+
+  async function handleLogout() {
+    await logout();
+    router.push("/login");
+  }
 
   return (
     <Sidebar>
@@ -98,16 +105,27 @@ function AppSidebar() {
         )}
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border p-4">
-        <div className="flex items-center gap-3">
-          <Avatar className="size-8">
-            <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-          </Avatar>
-          <div className="flex-1 overflow-hidden">
-            <p className="truncate text-sm font-medium">{user?.fullName}</p>
-            <Badge variant="secondary" className="mt-0.5 text-[10px] capitalize">
-              {USER_ROLES[role].label}
-            </Badge>
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <Avatar className="size-8">
+              <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+            </Avatar>
+            <div className="flex-1 overflow-hidden">
+              <p className="truncate text-sm font-medium">{user?.fullName}</p>
+              <Badge variant="secondary" className="mt-0.5 text-[10px] capitalize">
+                {USER_ROLES[role].label}
+              </Badge>
+            </div>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start"
+            onClick={() => void handleLogout()}
+          >
+            <LogOut className="size-4" />
+            Log out
+          </Button>
         </div>
       </SidebarFooter>
     </Sidebar>

@@ -35,6 +35,7 @@ export const queryKeys = {
     stats: ["dashboard", "stats"] as const,
     activities: ["dashboard", "activities"] as const,
     chart: ["dashboard", "chart"] as const,
+    citizen: (userId: string) => ["dashboard", "citizen", userId] as const,
   },
   residency: {
     list: (params?: PaginationParams) =>

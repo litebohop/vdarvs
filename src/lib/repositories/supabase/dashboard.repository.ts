@@ -4,6 +4,7 @@ export const supabaseDashboardRepository = {
   getStats: dashboardQueries.fetchDashboardStats,
   getRecentActivities: dashboardQueries.fetchRecentActivities,
   getChartData: dashboardQueries.fetchChartData,
+  getCitizenSummary: dashboardQueries.fetchCitizenDashboardSummary,
 };
 
 export const supabaseNotificationRepository = {
