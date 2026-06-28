@@ -24,6 +24,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { USER_ROLES } from "@/constants/roles";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { cn } from "@/lib/utils";
 
 function AppSidebar() {
@@ -122,9 +123,10 @@ export function DashboardLayoutShell({
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-14 items-center gap-4 border-b px-6">
+        <header className="flex h-14 items-center gap-4 border-b bg-background px-6">
           <SidebarTrigger />
           <div className="flex-1" />
+          <ThemeToggle />
         </header>
         <main className={cn("flex-1 p-6 lg:p-8")}>{children}</main>
       </SidebarInset>

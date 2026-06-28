@@ -8,7 +8,13 @@ import { Toaster } from "@/components/ui/sonner";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      storageKey="vdarvs-theme"
+      disableTransitionOnChange
+    >
       <QueryProvider>
         <AuthProvider>
           <TooltipProvider>

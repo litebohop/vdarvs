@@ -18,7 +18,7 @@ export function ProtectedLayout({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen p-8">
+      <div className="min-h-screen bg-background p-8">
         <DashboardSkeleton />
       </div>
     );

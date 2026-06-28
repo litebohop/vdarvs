@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { useAuth } from "@/providers/auth-provider";
 import { appConfig } from "@/config/app.config";
 import { toast } from "sonner";
@@ -40,7 +41,10 @@ export function LoginForm() {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="relative flex min-h-screen bg-background">
+      <div className="absolute right-4 top-4 z-10">
+        <ThemeToggle />
+      </div>
       <div className="hidden w-1/2 flex-col justify-between bg-primary p-12 text-primary-foreground lg:flex">
         <div className="flex items-center gap-3">
           <Shield className="size-8" />
@@ -60,8 +64,8 @@ export function LoginForm() {
         </p>
       </div>
 
-      <div className="flex flex-1 items-center justify-center p-8">
-        <Card className="w-full max-w-md border-0 shadow-none lg:border lg:shadow-sm">
+      <div className="flex flex-1 items-center justify-center bg-background p-8">
+        <Card className="w-full max-w-md border shadow-sm">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl">Sign in</CardTitle>
             <CardDescription>

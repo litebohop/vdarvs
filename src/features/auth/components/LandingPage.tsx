@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Shield, Users, Map, FileText, Scale, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { appConfig } from "@/config/app.config";
 
 const features = [
@@ -33,13 +34,14 @@ const features = [
 export function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
+      <header className="border-b bg-background">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <div className="flex items-center gap-2">
             <Shield className="size-6" />
             <span className="font-semibold">{appConfig.name}</span>
           </div>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <Button variant="ghost" asChild>
               <Link href="/login">Sign in</Link>
             </Button>

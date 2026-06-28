@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { PageHeader } from "@/components/shared/page-header";
+import { ThemeSelector } from "@/components/shared/theme-selector";
 import { appConfig } from "@/config/app.config";
 
 export function SettingsView() {
@@ -32,6 +33,15 @@ export function SettingsView() {
                 <p className="text-sm text-muted-foreground">{appConfig.country}</p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Appearance</CardTitle>
+            <CardDescription>Choose how VDARVS looks on this device</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ThemeSelector />
           </CardContent>
         </Card>
         <Card>

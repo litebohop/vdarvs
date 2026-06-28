@@ -46,9 +46,9 @@ const statCards = [
 ];
 
 const chartConfig = {
-  citizens: { label: "Citizens", color: "hsl(var(--chart-1))" },
-  documents: { label: "Documents", color: "hsl(var(--chart-2))" },
-  disputes: { label: "Disputes", color: "hsl(var(--chart-3))" },
+  citizens: { label: "Citizens", color: "var(--chart-1)" },
+  documents: { label: "Documents", color: "var(--chart-2)" },
+  disputes: { label: "Disputes", color: "var(--chart-3)" },
 };
 
 export function DashboardView() {
