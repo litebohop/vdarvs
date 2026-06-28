@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useUsers } from "@/features/dashboard/hooks/useDashboard";
+import { ExportPdfButton } from "@/components/shared/export-pdf-button";
 import { PageHeader } from "@/components/shared/page-header";
 import { PageSkeleton } from "@/components/shared/page-skeleton";
 import { ErrorState } from "@/components/shared/empty-state";
@@ -28,7 +29,19 @@ export function UsersTable() {
       <PageHeader
         title="Users"
         description="System users and role assignments"
-      />
+      >
+        <ExportPdfButton
+          title="Users"
+          headers={["Name", "Email", "Role", "Village", "District"]}
+          rows={users.map((user) => [
+            user.fullName,
+            user.email,
+            USER_ROLES[user.role].label,
+            user.village ?? "—",
+            user.district ?? "—",
+          ])}
+        />
+      </PageHeader>
       <div className="rounded-xl border">
         <Table>
           <TableHeader>

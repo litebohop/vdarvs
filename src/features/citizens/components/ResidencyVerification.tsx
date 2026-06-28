@@ -14,6 +14,7 @@ import {
   useVerifyResidency,
   useRejectResidency,
 } from "@/features/citizens/hooks/useCitizens";
+import { ExportPdfButton } from "@/components/shared/export-pdf-button";
 import { PageHeader } from "@/components/shared/page-header";
 import { PageSkeleton } from "@/components/shared/page-skeleton";
 import { EmptyState, ErrorState } from "@/components/shared/empty-state";
@@ -38,7 +39,27 @@ export function ResidencyVerification() {
       <PageHeader
         title="Residency Verification"
         description="Village Chief endorsement of citizen residency"
-      />
+      >
+        <ExportPdfButton
+          title="Residency Verification"
+          headers={[
+            "Citizen",
+            "National ID",
+            "Village",
+            "District",
+            "Status",
+            "Requested",
+          ]}
+          rows={requests.map((req) => [
+            req.citizenName,
+            req.nationalId,
+            req.village,
+            req.district,
+            req.status,
+            format(new Date(req.requestedAt), "dd MMM yyyy"),
+          ])}
+        />
+      </PageHeader>
       {requests.length === 0 ? (
         <EmptyState
           title="No pending verifications"

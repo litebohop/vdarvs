@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useCitizens } from "@/features/citizens/hooks/useCitizens";
+import { ExportPdfButton } from "@/components/shared/export-pdf-button";
 import { PageHeader } from "@/components/shared/page-header";
 import { SearchInput, useTableParams } from "@/components/shared/search-input";
 import { PageSkeleton } from "@/components/shared/page-skeleton";
@@ -35,6 +36,27 @@ export function CitizensTable() {
         title="Citizens"
         description="Registered citizens across Lesotho villages"
       >
+        <ExportPdfButton
+          title="Citizens"
+          headers={[
+            "Name",
+            "National ID",
+            "Village",
+            "District",
+            "Verification",
+            "Status",
+            "Registered",
+          ]}
+          rows={citizens.map((citizen) => [
+            `${citizen.firstName} ${citizen.lastName}`,
+            citizen.nationalId,
+            citizen.address.village,
+            citizen.address.district,
+            citizen.verificationStatus,
+            citizen.status,
+            format(new Date(citizen.registeredAt), "dd MMM yyyy"),
+          ])}
+        />
         <Button asChild>
           <Link href="/citizens/register">
             <Plus className="mr-2 size-4" />

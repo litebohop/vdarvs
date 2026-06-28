@@ -14,6 +14,7 @@ import {
   useApproveDocument,
   useRejectDocument,
 } from "@/features/documents/hooks/useDocuments";
+import { ExportPdfButton } from "@/components/shared/export-pdf-button";
 import { PageHeader } from "@/components/shared/page-header";
 import { SearchInput, useTableParams } from "@/components/shared/search-input";
 import { PageSkeleton } from "@/components/shared/page-skeleton";
@@ -41,7 +42,27 @@ export function DocumentsTable() {
       <PageHeader
         title="Official Documents"
         description="Certificates, permits, and village endorsements"
-      />
+      >
+        <ExportPdfButton
+          title="Official Documents"
+          headers={[
+            "Reference",
+            "Type",
+            "Citizen",
+            "Village",
+            "Status",
+            "Requested",
+          ]}
+          rows={documents.map((doc) => [
+            doc.referenceNumber,
+            capitalize(doc.type),
+            doc.citizenName,
+            doc.village,
+            doc.status,
+            format(new Date(doc.requestedAt), "dd MMM yyyy"),
+          ])}
+        />
+      </PageHeader>
       <SearchInput
         value={search}
         onChange={(v) => { setSearch(v); setPage(1); }}

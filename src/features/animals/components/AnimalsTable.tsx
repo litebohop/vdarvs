@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAnimals } from "@/features/animals/hooks/useAnimals";
+import { ExportPdfButton } from "@/components/shared/export-pdf-button";
 import { PageHeader } from "@/components/shared/page-header";
 import { SearchInput, useTableParams } from "@/components/shared/search-input";
 import { PageSkeleton } from "@/components/shared/page-skeleton";
@@ -29,7 +30,29 @@ export function AnimalsTable() {
       <PageHeader
         title="Animal Registry"
         description="Livestock and animal registration for village administration"
-      />
+      >
+        <ExportPdfButton
+          title="Animal Registry"
+          headers={[
+            "Tag Number",
+            "Species",
+            "Breed",
+            "Owner",
+            "Village",
+            "Status",
+            "Registered",
+          ]}
+          rows={animals.map((animal) => [
+            animal.tagNumber,
+            animal.species,
+            animal.breed,
+            animal.ownerName,
+            animal.village,
+            animal.status,
+            format(new Date(animal.registeredAt), "dd MMM yyyy"),
+          ])}
+        />
+      </PageHeader>
       <SearchInput
         value={search}
         onChange={(v) => { setSearch(v); setPage(1); }}

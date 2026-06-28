@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useLandRecords } from "@/features/land/hooks/useLand";
+import { ExportPdfButton } from "@/components/shared/export-pdf-button";
 import { PageHeader } from "@/components/shared/page-header";
 import { SearchInput, useTableParams } from "@/components/shared/search-input";
 import { PageSkeleton } from "@/components/shared/page-skeleton";
@@ -30,7 +31,20 @@ export function LandTable() {
       <PageHeader
         title="Land Records"
         description="Village land parcels and ownership records"
-      />
+      >
+        <ExportPdfButton
+          title="Land Records"
+          headers={["Parcel", "Owner", "Village", "Type", "Size (ha)", "Status"]}
+          rows={records.map((record) => [
+            record.parcelNumber,
+            record.ownerName,
+            record.village,
+            capitalize(record.landType),
+            String(record.sizeHectares),
+            record.status,
+          ])}
+        />
+      </PageHeader>
       <SearchInput
         value={search}
         onChange={(v) => { setSearch(v); setPage(1); }}

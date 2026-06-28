@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAuditLogs } from "@/features/dashboard/hooks/useDashboard";
+import { ExportPdfButton } from "@/components/shared/export-pdf-button";
 import { PageHeader } from "@/components/shared/page-header";
 import { SearchInput, useTableParams } from "@/components/shared/search-input";
 import { PageSkeleton } from "@/components/shared/page-skeleton";
@@ -29,7 +30,27 @@ export function AuditLogsTable() {
       <PageHeader
         title="Audit Logs"
         description="System activity and compliance trail"
-      />
+      >
+        <ExportPdfButton
+          title="Audit Logs"
+          headers={[
+            "Timestamp",
+            "User",
+            "Action",
+            "Entity",
+            "Details",
+            "Village",
+          ]}
+          rows={logs.map((log) => [
+            format(new Date(log.createdAt), "dd MMM yyyy HH:mm"),
+            log.userName,
+            log.action,
+            log.entity,
+            log.details,
+            log.village ?? "—",
+          ])}
+        />
+      </PageHeader>
       <SearchInput
         value={search}
         onChange={setSearch}

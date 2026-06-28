@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useDisputes } from "@/features/disputes/hooks/useDisputes";
+import { ExportPdfButton } from "@/components/shared/export-pdf-button";
 import { PageHeader } from "@/components/shared/page-header";
 import { SearchInput, useTableParams } from "@/components/shared/search-input";
 import { PageSkeleton } from "@/components/shared/page-skeleton";
@@ -31,7 +32,29 @@ export function DisputesTable() {
       <PageHeader
         title="Dispute Resolution"
         description="Village disputes mediated by Chiefs"
-      />
+      >
+        <ExportPdfButton
+          title="Dispute Resolution"
+          headers={[
+            "Case",
+            "Title",
+            "Category",
+            "Complainant",
+            "Village",
+            "Status",
+            "Filed",
+          ]}
+          rows={disputes.map((dispute) => [
+            dispute.caseNumber,
+            dispute.title,
+            capitalize(dispute.category),
+            dispute.complainantName,
+            dispute.village,
+            dispute.status,
+            format(new Date(dispute.filedAt), "dd MMM yyyy"),
+          ])}
+        />
+      </PageHeader>
       <SearchInput
         value={search}
         onChange={(v) => { setSearch(v); setPage(1); }}
