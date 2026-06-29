@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -30,7 +31,7 @@ const schema = z.object({
   complainantId: z.string().min(1, "Complainant is required"),
   title: z.string().min(5, "Title is required"),
   description: z.string().min(20, "Please describe the dispute"),
-  respondentName: z.string().min(2, "Respondent name is required"),
+  respondentId: z.string().min(1, "Select a respondent"),
   category: z.enum(["land", "livestock", "boundary", "family", "other"]),
 });
 
@@ -57,9 +58,24 @@ export function DisputeFileForm() {
   const complainant =
     citizens.find((c) => c.id === complainantId) ?? linkedCitizen ?? null;
 
+  const respondentOptions = citizens.filter((c) => c.id !== complainant?.id);
+
+  useEffect(() => {
+    const current = form.getValues("respondentId");
+    if (current && current === complainant?.id) {
+      form.setValue("respondentId", "");
+    }
+  }, [complainant?.id, form]);
+
   const onSubmit = (values: FormValues) => {
     if (!user || !complainant) {
       toast.error("Select a valid complainant");
+      return;
+    }
+
+    const respondent = citizens.find((c) => c.id === values.respondentId);
+    if (!respondent) {
+      toast.error("Select a valid respondent");
       return;
     }
 
@@ -70,7 +86,7 @@ export function DisputeFileForm() {
           description: values.description,
           complainantId: complainant.id,
           complainantName: `${complainant.firstName} ${complainant.lastName}`,
-          respondentName: values.respondentName,
+          respondentName: `${respondent.firstName} ${respondent.lastName}`,
           village: complainant.address.village,
           district: complainant.address.district,
           chiefId: complainant.chiefId,
@@ -164,13 +180,36 @@ export function DisputeFileForm() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Respondent</label>
-              <Input placeholder="Person or party involved" {...form.register("respondentName")} />
+              {respondentOptions.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No other citizens are registered in the system yet.
+                </p>
+              ) : (
+                <Select
+                  value={form.watch("respondentId")}
+                  onValueChange={(v) => form.setValue("respondentId", v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select citizen in the system" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {respondentOptions.map((citizen) => (
+                      <SelectItem key={citizen.id} value={citizen.id}>
+                        {citizen.firstName} {citizen.lastName} · {citizen.address.village}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Description</label>
               <Textarea rows={5} {...form.register("description")} />
             </div>
-            <Button type="submit" disabled={fileDispute.isPending}>
+            <Button
+              type="submit"
+              disabled={fileDispute.isPending || respondentOptions.length === 0}
+            >
               {fileDispute.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
               Submit dispute
             </Button>
