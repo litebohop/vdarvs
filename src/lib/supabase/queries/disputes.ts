@@ -26,6 +26,10 @@ export async function fetchDisputes(
     );
   }
 
+  if (params?.complainantId) {
+    query = query.eq("complainant_id", params.complainantId);
+  }
+
   query = query.order("filed_at", { ascending: false });
 
   const { data, error, count } = await query.range(from, to);

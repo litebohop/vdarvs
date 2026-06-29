@@ -144,6 +144,9 @@ export const documents = pgTable("documents", {
     .notNull()
     .defaultNow(),
   approvedBy: text("approved_by"),
+  attachmentPath: text("attachment_path"),
+  attachmentName: text("attachment_name"),
+  requestedBy: uuid("requested_by").references(() => profiles.id),
 });
 
 export const disputes = pgTable("disputes", {

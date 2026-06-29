@@ -28,6 +28,9 @@ export interface PaginationParams {
   search?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+  citizenId?: string;
+  ownerId?: string;
+  complainantId?: string;
 }
 
 export interface PaginatedResult<T> {

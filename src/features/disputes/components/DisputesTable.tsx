@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { Plus } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -8,7 +10,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { useDisputes } from "@/features/disputes/hooks/useDisputes";
+import { useAuth } from "@/providers/auth-provider";
+import { useLinkedCitizen } from "@/features/citizens/hooks/useCitizens";
 import { ExportPdfButton } from "@/components/shared/export-pdf-button";
 import { PageHeader } from "@/components/shared/page-header";
 import { SearchInput, useTableParams } from "@/components/shared/search-input";
@@ -20,7 +25,17 @@ import { capitalize } from "@/lib/utils/format";
 
 export function DisputesTable() {
   const { search, setSearch, setPage, params } = useTableParams();
+  const { user } = useAuth();
+  const { data: linkedCitizen } = useLinkedCitizen();
   const { data, isLoading, isError, refetch } = useDisputes(params);
+  const isCitizen = user?.role === "citizen";
+  const canFile =
+    isCitizen && linkedCitizen
+      ? true
+      : user?.role === "village_staff" ||
+        user?.role === "village_chief" ||
+        user?.role === "district_officer" ||
+        user?.role === "administrator";
 
   if (isLoading) return <PageSkeleton />;
   if (isError) return <ErrorState onRetry={() => refetch()} />;
@@ -30,10 +45,23 @@ export function DisputesTable() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Dispute Resolution"
-        description="Village disputes mediated by Chiefs"
+        title={isCitizen ? "My disputes" : "Dispute Resolution"}
+        description={
+          isCitizen
+            ? "Cases you have filed with your village chief"
+            : "Village disputes mediated by Chiefs"
+        }
       >
-        <ExportPdfButton
+        <div className="flex gap-2">
+          {canFile && (
+            <Button asChild>
+              <Link href="/disputes/file">
+                <Plus className="mr-2 size-4" />
+                File dispute
+              </Link>
+            </Button>
+          )}
+          <ExportPdfButton
           title="Dispute Resolution"
           headers={[
             "Case",
@@ -54,6 +82,7 @@ export function DisputesTable() {
             format(new Date(dispute.filedAt), "dd MMM yyyy"),
           ])}
         />
+        </div>
       </PageHeader>
       <SearchInput
         value={search}

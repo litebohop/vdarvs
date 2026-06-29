@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { Plus } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -8,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { useAnimals } from "@/features/animals/hooks/useAnimals";
 import { ExportPdfButton } from "@/components/shared/export-pdf-button";
 import { PageHeader } from "@/components/shared/page-header";
@@ -31,7 +34,14 @@ export function AnimalsTable() {
         title="Animal Registry"
         description="Livestock and animal registration for village administration"
       >
-        <ExportPdfButton
+        <div className="flex gap-2">
+          <Button asChild>
+            <Link href="/animals/register">
+              <Plus className="mr-2 size-4" />
+              Register animal
+            </Link>
+          </Button>
+          <ExportPdfButton
           title="Animal Registry"
           headers={[
             "Tag Number",
@@ -52,6 +62,7 @@ export function AnimalsTable() {
             format(new Date(animal.registeredAt), "dd MMM yyyy"),
           ])}
         />
+        </div>
       </PageHeader>
       <SearchInput
         value={search}

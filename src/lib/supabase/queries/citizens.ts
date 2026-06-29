@@ -69,6 +69,18 @@ export async function fetchCitizenById(id: string): Promise<Citizen | null> {
   return data ? mapCitizen(data as DbCitizen) : null;
 }
 
+export async function fetchCitizenByEmail(email: string): Promise<Citizen | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("citizens")
+    .select("*")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return data ? mapCitizen(data as DbCitizen) : null;
+}
+
 export async function fetchResidencyRequests(params?: PaginationParams) {
   const supabase = createClient();
   const { page, pageSize, from, to } = getPaginationRange(params);

@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { Plus } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -8,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { useLandRecords } from "@/features/land/hooks/useLand";
 import { ExportPdfButton } from "@/components/shared/export-pdf-button";
 import { PageHeader } from "@/components/shared/page-header";
@@ -32,7 +35,14 @@ export function LandTable() {
         title="Land Records"
         description="Village land parcels and ownership records"
       >
-        <ExportPdfButton
+        <div className="flex gap-2">
+          <Button asChild>
+            <Link href="/land/register">
+              <Plus className="mr-2 size-4" />
+              Register land
+            </Link>
+          </Button>
+          <ExportPdfButton
           title="Land Records"
           headers={["Parcel", "Owner", "Village", "Type", "Size (ha)", "Status"]}
           rows={records.map((record) => [
@@ -44,6 +54,7 @@ export function LandTable() {
             record.status,
           ])}
         />
+        </div>
       </PageHeader>
       <SearchInput
         value={search}

@@ -68,6 +68,9 @@ export interface Document {
   issuedAt?: string;
   requestedAt: string;
   approvedBy?: string;
+  attachmentPath?: string;
+  attachmentName?: string;
+  requestedBy?: string;
 }
 
 export interface Dispute {
@@ -185,6 +188,8 @@ export interface ResidencyRequest {
 export interface RoleRequest {
   id: string;
   userId: string;
+  userName?: string;
+  userEmail?: string;
   requestedRole: UserRole;
   reason: string;
   village?: string;

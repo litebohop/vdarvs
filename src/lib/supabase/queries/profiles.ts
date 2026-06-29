@@ -78,3 +78,34 @@ export async function updateProfile(
   if (error) throw new Error(error.message);
   return mapProfile(data as DbProfile);
 }
+
+export async function updateProfileRole(
+  id: string,
+  role: UserRole,
+): Promise<User> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .update({ role, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select("*")
+    .single();
+
+  if (error) throw new Error(error.message);
+  return mapProfile(data as DbProfile);
+}
+
+export async function fetchChiefProfileByChiefId(
+  chiefId: string,
+): Promise<User | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("chief_id", chiefId)
+    .eq("role", "village_chief")
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return data ? mapProfile(data as DbProfile) : null;
+}

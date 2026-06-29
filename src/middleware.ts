@@ -8,9 +8,13 @@ const ROLE_ROUTES: Record<string, string[]> = {
   "/citizens/register": ["village_staff", "village_chief", "district_officer", "administrator"],
   "/residency": ["village_chief", "district_officer", "administrator"],
   "/land": ["village_staff", "village_chief", "district_officer", "administrator"],
+  "/land/register": ["village_staff", "village_chief", "district_officer", "administrator"],
   "/animals": ["village_staff", "village_chief", "district_officer", "administrator"],
+  "/animals/register": ["village_staff", "village_chief", "district_officer", "administrator"],
+  "/disputes/file": ["citizen", "village_staff", "village_chief", "district_officer", "administrator"],
   "/reports": ["village_chief", "district_officer", "administrator"],
   "/users": ["administrator"],
+  "/role-requests": ["administrator"],
   "/settings": ["administrator"],
   "/audit-logs": ["administrator", "district_officer"],
 };

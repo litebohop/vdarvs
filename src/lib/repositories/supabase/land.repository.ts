@@ -9,10 +9,18 @@ export const supabaseLandRepository = {
   ): Promise<LandRecord> => {
     const { createClient } = await import("@/lib/supabase/client");
     const supabase = createClient();
+    const year = new Date().getFullYear();
+    const { count } = await supabase
+      .from("land_records")
+      .select("id", { count: "exact", head: true });
+    const parcelNumber =
+      data.parcelNumber ||
+      `PAR-${year}-${String((count ?? 0) + 1).padStart(4, "0")}`;
+
     const { data: row, error } = await supabase
       .from("land_records")
       .insert({
-        parcel_number: data.parcelNumber,
+        parcel_number: parcelNumber,
         owner_id: data.ownerId,
         village: data.village,
         community_council: data.communityCouncil,

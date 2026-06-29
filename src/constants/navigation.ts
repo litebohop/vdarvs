@@ -11,6 +11,7 @@ import {
   Settings,
   ClipboardList,
   UserCheck,
+  ShieldCheck,
 } from "lucide-react";
 
 export interface NavItem {
@@ -118,6 +119,12 @@ export const MAIN_NAV: NavItem[] = [
 ];
 
 export const ADMIN_NAV: NavItem[] = [
+  {
+    title: "Role Requests",
+    href: "/role-requests",
+    icon: ShieldCheck,
+    roles: ["administrator"],
+  },
   {
     title: "Users",
     href: "/users",

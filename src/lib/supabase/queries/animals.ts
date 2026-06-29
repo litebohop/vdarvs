@@ -24,6 +24,10 @@ export async function fetchAnimals(
     );
   }
 
+  if (params?.ownerId) {
+    query = query.eq("owner_id", params.ownerId);
+  }
+
   query = query.order("registered_at", { ascending: false });
 
   const { data, error, count } = await query.range(from, to);

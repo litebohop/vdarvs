@@ -181,6 +181,9 @@ export type DbDocument = {
   issued_at: string | null;
   requested_at: string;
   approved_by: string | null;
+  attachment_path: string | null;
+  attachment_name: string | null;
+  requested_by: string | null;
   citizens?: { first_name: string; last_name: string };
 };
 
@@ -200,6 +203,9 @@ export function mapDocument(row: DbDocument): Document {
     issuedAt: row.issued_at ?? undefined,
     requestedAt: row.requested_at,
     approvedBy: row.approved_by ?? undefined,
+    attachmentPath: row.attachment_path ?? undefined,
+    attachmentName: row.attachment_name ?? undefined,
+    requestedBy: row.requested_by ?? undefined,
   };
 }
 

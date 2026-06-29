@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useNotifications } from "@/features/dashboard/hooks/useDashboard";
+import { useNotifications, useMarkNotificationRead } from "@/features/dashboard/hooks/useDashboard";
 import { PageHeader } from "@/components/shared/page-header";
 import { PageSkeleton } from "@/components/shared/page-skeleton";
 import { EmptyState, ErrorState } from "@/components/shared/empty-state";
@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 
 export function NotificationsList() {
   const { data, isLoading, isError, refetch } = useNotifications();
+  const markAsRead = useMarkNotificationRead();
 
   if (isLoading) return <PageSkeleton />;
   if (isError) return <ErrorState onRetry={() => refetch()} />;
@@ -31,6 +32,9 @@ export function NotificationsList() {
             <Link
               key={notif.id}
               href={notif.href ?? "#"}
+              onClick={() => {
+                if (!notif.read) markAsRead.mutate(notif.id);
+              }}
               className={cn(
                 "block rounded-xl border p-4 transition-colors hover:bg-muted/50",
                 !notif.read && "border-primary/20 bg-primary/5",

@@ -9,10 +9,18 @@ export const supabaseAnimalRepository = {
   ): Promise<Animal> => {
     const { createClient } = await import("@/lib/supabase/client");
     const supabase = createClient();
+    const year = new Date().getFullYear();
+    const { count } = await supabase
+      .from("animals")
+      .select("id", { count: "exact", head: true });
+    const tagNumber =
+      data.tagNumber ||
+      `LS-${data.species.slice(0, 1).toUpperCase()}-${year}-${String((count ?? 0) + 1).padStart(4, "0")}`;
+
     const { data: row, error } = await supabase
       .from("animals")
       .insert({
-        tag_number: data.tagNumber,
+        tag_number: tagNumber,
         species: data.species,
         breed: data.breed,
         owner_id: data.ownerId,

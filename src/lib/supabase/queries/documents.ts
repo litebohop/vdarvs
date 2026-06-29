@@ -7,6 +7,15 @@ import {
   getPaginationRange,
 } from "@/lib/supabase/pagination";
 
+const DOCUMENT_TYPE_PREFIX: Record<Document["type"], string> = {
+  residency_certificate: "RC",
+  birth_record: "BR",
+  land_title: "LT",
+  animal_permit: "AP",
+  chief_endorsement: "CE",
+  dispute_ruling: "DR",
+};
+
 export async function fetchDocuments(
   params?: PaginationParams,
 ): Promise<PaginatedResult<Document>> {
@@ -16,6 +25,10 @@ export async function fetchDocuments(
   let query = supabase
     .from("documents")
     .select("*, citizens(first_name, last_name)", { count: "exact" });
+
+  if (params?.citizenId) {
+    query = query.eq("citizen_id", params.citizenId);
+  }
 
   if (params?.search) {
     const term = `%${params.search}%`;
@@ -47,6 +60,45 @@ export async function fetchDocumentById(id: string): Promise<Document | null> {
 
   if (error) throw new Error(error.message);
   return data ? mapDocument(data as DbDocument) : null;
+}
+
+export async function insertDocument(input: {
+  type: Document["type"];
+  title: string;
+  citizenId: string;
+  village: string;
+  district: string;
+  requestedBy?: string;
+  attachmentPath?: string;
+  attachmentName?: string;
+}): Promise<Document> {
+  const supabase = createClient();
+  const year = new Date().getFullYear();
+  const prefix = DOCUMENT_TYPE_PREFIX[input.type];
+  const { count } = await supabase
+    .from("documents")
+    .select("id", { count: "exact", head: true });
+  const referenceNumber = `VDARVS-${prefix}-${year}-${String((count ?? 0) + 1).padStart(4, "0")}`;
+
+  const { data, error } = await supabase
+    .from("documents")
+    .insert({
+      reference_number: referenceNumber,
+      type: input.type,
+      title: input.title,
+      citizen_id: input.citizenId,
+      village: input.village,
+      district: input.district,
+      status: "pending",
+      requested_by: input.requestedBy ?? null,
+      attachment_path: input.attachmentPath ?? null,
+      attachment_name: input.attachmentName ?? null,
+    })
+    .select("*, citizens(first_name, last_name)")
+    .single();
+
+  if (error) throw new Error(error.message);
+  return mapDocument(data as DbDocument);
 }
 
 export async function updateDocumentStatus(

@@ -6,6 +6,7 @@ export const queryKeys = {
     list: (params?: PaginationParams) =>
       ["citizens", "list", params] as const,
     detail: (id: string) => ["citizens", "detail", id] as const,
+    byEmail: (email: string) => ["citizens", "by-email", email] as const,
   },
   animals: {
     all: ["animals"] as const,
@@ -58,5 +59,6 @@ export const queryKeys = {
   },
   roleRequests: {
     latest: (userId: string) => ["role-requests", "latest", userId] as const,
+    list: (params?: PaginationParams) => ["role-requests", "list", params] as const,
   },
 } as const;

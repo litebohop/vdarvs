@@ -7,6 +7,8 @@ import { citizenService } from "@/lib/services/citizen.service";
 import { chiefService } from "@/lib/services/chief.service";
 import type { AuditActor } from "@/lib/services/dashboard.service";
 import { queryKeys } from "@/lib/query-keys";
+import { fetchCitizenByEmail } from "@/lib/supabase/queries/citizens";
+import { useAuth } from "@/providers/auth-provider";
 import { toast } from "sonner";
 
 export function useCitizens(params?: PaginationParams) {
@@ -21,6 +23,15 @@ export function useCitizen(id: string) {
     queryKey: queryKeys.citizens.detail(id),
     queryFn: () => citizenService.getCitizen(id),
     enabled: !!id,
+  });
+}
+
+export function useLinkedCitizen() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: queryKeys.citizens.byEmail(user?.email ?? ""),
+    queryFn: () => fetchCitizenByEmail(user!.email),
+    enabled: !!user?.email,
   });
 }
 
