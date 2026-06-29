@@ -10,7 +10,8 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "test:e2e": "node scripts/e2e-demo-flow.mjs"
+    "test:e2e": "node scripts/e2e-demo-flow.mjs",
+    "docs:guide-pdf": "node scripts/generate-system-guide.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

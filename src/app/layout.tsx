@@ -1,12 +1,30 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import {
+  Cormorant_Garamond,
+  Francois_One,
+  Geist_Mono,
+  Inter,
+} from "next/font/google";
 import { AppProviders } from "@/providers/app-providers";
 import { appConfig } from "@/config/app.config";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+});
+
+const francoisOne = Francois_One({
+  variable: "--font-display",
+  weight: "400",
+  subsets: ["latin"],
+});
+
+const cormorantGaramond = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  weight: ["400", "500", "600"],
 });
 
 const geistMono = Geist_Mono({
@@ -30,7 +48,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} ${francoisOne.variable} ${cormorantGaramond.variable} ${geistMono.variable} antialiased`}
       >
         <AppProviders>{children}</AppProviders>
       </body>

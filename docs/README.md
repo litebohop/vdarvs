@@ -12,6 +12,7 @@ Village Digital Administrative Records & Verification System: a production-quali
 | [Features](./features.md) | Routes, modules, and what each screen does |
 | [Auth & RBAC](./auth-and-rbac.md) | Supabase Auth, roles, and route protection |
 | [Demo flow](./demo-flow.md) | Who approves what, manual demo, and E2E test |
+| [System guide (PDF)](./system-guide/VDARVS-System-Guide.pdf) | Full manual with screenshots and step-by-step instructions |
 | [Supabase](./supabase.md) | Database schema, migrations, seed data, RLS |
 | [Deployment](./deployment.md) | Vercel, GitHub, and environment configuration |
 | [Roadmap](./roadmap.md) | Remaining work and suggested next steps |
