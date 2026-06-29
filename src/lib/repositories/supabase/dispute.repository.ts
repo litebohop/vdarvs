@@ -36,4 +36,5 @@ export const supabaseDisputeRepository = {
     const { mapDispute } = await import("@/lib/supabase/mappers");
     return mapDispute(row);
   },
+  updateStatus: disputeQueries.updateDisputeStatus,
 };

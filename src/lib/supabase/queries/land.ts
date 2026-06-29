@@ -54,3 +54,19 @@ export async function fetchLandRecordById(
   if (error) throw new Error(error.message);
   return data ? mapLandRecord(data as DbLandRecord) : null;
 }
+
+export async function updateLandRecordStatus(
+  id: string,
+  status: LandRecord["status"],
+): Promise<LandRecord> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("land_records")
+    .update({ status })
+    .eq("id", id)
+    .select("*, citizens(first_name, last_name)")
+    .single();
+
+  if (error) throw new Error(error.message);
+  return mapLandRecord(data as DbLandRecord);
+}

@@ -19,15 +19,20 @@ import { PageHeader } from "@/components/shared/page-header";
 import { PageSkeleton } from "@/components/shared/page-skeleton";
 import { EmptyState, ErrorState } from "@/components/shared/empty-state";
 import { VerificationBadge } from "@/components/shared/status-badge";
+import { WorkflowBanner } from "@/components/shared/workflow-banner";
 import { useAuth } from "@/providers/auth-provider";
 import { format } from "date-fns";
 import { Check, X } from "lucide-react";
 
 export function ResidencyVerification() {
-  const { data, isLoading, isError, refetch } = useResidencyRequests();
+  const { data, isLoading, isError, refetch } = useResidencyRequests({
+    status: "pending",
+  });
   const verify = useVerifyResidency();
   const reject = useRejectResidency();
   const { user } = useAuth();
+  const canVerify =
+    user?.role === "village_chief" || user?.role === "district_officer";
 
   if (isLoading) return <PageSkeleton />;
   if (isError) return <ErrorState onRetry={() => refetch()} />;
@@ -38,7 +43,7 @@ export function ResidencyVerification() {
     <div className="space-y-6">
       <PageHeader
         title="Residency Verification"
-        description="Village Chief endorsement of citizen residency"
+        description="Verify new citizens. This is a village chief task, not an administrator task."
       >
         <ExportPdfButton
           title="Residency Verification"
@@ -60,6 +65,14 @@ export function ResidencyVerification() {
           ])}
         />
       </PageHeader>
+
+      {user?.role === "village_chief" && (
+        <WorkflowBanner
+          title="Your responsibility"
+          message="When a citizen completes onboarding or staff registers them, the request appears here. Verify to confirm residency, or reject with a reason in person."
+        />
+      )}
+
       {requests.length === 0 ? (
         <EmptyState
           title="No pending verifications"
@@ -93,7 +106,7 @@ export function ResidencyVerification() {
                     {format(new Date(req.requestedAt), "dd MMM yyyy")}
                   </TableCell>
                   <TableCell>
-                    {req.status === "pending" && user && (
+                    {req.status === "pending" && user && canVerify && (
                       <div className="flex gap-1">
                         <Button
                           size="sm"

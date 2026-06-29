@@ -109,3 +109,26 @@ export async function fetchChiefProfileByChiefId(
   if (error) throw new Error(error.message);
   return data ? mapProfile(data as DbProfile) : null;
 }
+
+export async function fetchProfileByEmail(email: string): Promise<User | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return data ? mapProfile(data as DbProfile) : null;
+}
+
+export async function fetchAdministratorProfiles(): Promise<User[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("role", "administrator");
+
+  if (error) throw new Error(error.message);
+  return (data as DbProfile[]).map(mapProfile);
+}

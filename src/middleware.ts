@@ -6,7 +6,7 @@ const PUBLIC_ROUTES = ["/", "/login", "/signup"];
 const ROLE_ROUTES: Record<string, string[]> = {
   "/citizens": ["village_staff", "village_chief", "district_officer", "administrator"],
   "/citizens/register": ["village_staff", "village_chief", "district_officer", "administrator"],
-  "/residency": ["village_chief", "district_officer", "administrator"],
+  "/residency": ["village_chief", "district_officer"],
   "/land": ["village_staff", "village_chief", "district_officer", "administrator"],
   "/land/register": ["village_staff", "village_chief", "district_officer", "administrator"],
   "/animals": ["village_staff", "village_chief", "district_officer", "administrator"],

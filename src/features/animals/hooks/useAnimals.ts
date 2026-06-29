@@ -40,3 +40,31 @@ export function useRegisterAnimal() {
     onError: (error: Error) => toast.error(error.message || "Failed to register animal"),
   });
 }
+
+export function useApproveAnimal() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, actor }: { id: string; actor: AuditActor }) =>
+      animalService.approveAnimal(id, actor),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.animals.all });
+      toast.success("Animal registration approved");
+    },
+    onError: (error: Error) =>
+      toast.error(error.message || "Failed to approve animal"),
+  });
+}
+
+export function useRejectAnimal() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, actor }: { id: string; actor: AuditActor }) =>
+      animalService.rejectAnimal(id, actor),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.animals.all });
+      toast.success("Animal registration rejected");
+    },
+    onError: (error: Error) =>
+      toast.error(error.message || "Failed to reject animal"),
+  });
+}

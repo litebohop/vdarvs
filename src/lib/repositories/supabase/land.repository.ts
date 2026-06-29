@@ -38,4 +38,5 @@ export const supabaseLandRepository = {
     const { mapLandRecord } = await import("@/lib/supabase/mappers");
     return mapLandRecord(row);
   },
+  updateStatus: landQueries.updateLandRecordStatus,
 };

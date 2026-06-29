@@ -13,8 +13,11 @@ import { PageHeader } from "@/components/shared/page-header";
 import { DashboardSkeleton } from "@/components/shared/page-skeleton";
 import { ErrorState } from "@/components/shared/empty-state";
 import { StatusBadge, VerificationBadge } from "@/components/shared/status-badge";
+import { WorkflowGuide } from "@/components/shared/workflow-guide";
+import { WorkflowBanner } from "@/components/shared/workflow-banner";
 import { useAuth } from "@/providers/auth-provider";
 import { useCitizenDashboard } from "@/features/dashboard/hooks/useDashboard";
+import { useChief } from "@/features/citizens/hooks/useCitizens";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { capitalize } from "@/lib/utils/format";
@@ -22,6 +25,8 @@ import { capitalize } from "@/lib/utils/format";
 export function CitizenDashboardView() {
   const { user } = useAuth();
   const summary = useCitizenDashboard();
+  const citizen = summary.data?.citizen;
+  const { data: chief } = useChief(citizen?.chiefId);
 
   if (summary.isLoading) return <DashboardSkeleton />;
   if (summary.isError) {
@@ -29,7 +34,6 @@ export function CitizenDashboardView() {
   }
 
   const data = summary.data;
-  const citizen = data?.citizen;
 
   const statCards = [
     {
@@ -85,8 +89,8 @@ export function CitizenDashboardView() {
           <CardHeader>
             <CardTitle>Complete your citizen profile</CardTitle>
             <CardDescription>
-              Register as a citizen to track residency verification, documents,
-              and disputes linked to your account.
+              Register as a citizen first. Your village chief will verify your
+              residency before you can use documents and disputes fully.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -96,6 +100,22 @@ export function CitizenDashboardView() {
           </CardContent>
         </Card>
       )}
+
+      {citizen && citizen.verificationStatus === "pending" && (
+        <WorkflowBanner
+          title="Waiting for residency verification"
+          message={`Your application is with ${chief?.name ?? "your village chief"}. After verification you can receive approved documents and use village services.`}
+        />
+      )}
+
+      {citizen && citizen.verificationStatus !== "pending" && chief && (
+        <WorkflowBanner
+          title="Your village chief"
+          message={`${chief.name} (${chief.village}) approves your document requests and mediates your disputes.`}
+        />
+      )}
+
+      <WorkflowGuide role="citizen" />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {statCards.map(({ label, value, icon: Icon, href, badge }) => {

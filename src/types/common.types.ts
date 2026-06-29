@@ -31,6 +31,7 @@ export interface PaginationParams {
   citizenId?: string;
   ownerId?: string;
   complainantId?: string;
+  status?: string;
 }
 
 export interface PaginatedResult<T> {

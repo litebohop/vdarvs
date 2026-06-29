@@ -28,7 +28,7 @@ export function UsersTable() {
     <div className="space-y-6">
       <PageHeader
         title="Users"
-        description="System users and role assignments"
+        description="Read-only list of staff accounts. Role changes happen through Role Requests."
       >
         <ExportPdfButton
           title="Users"

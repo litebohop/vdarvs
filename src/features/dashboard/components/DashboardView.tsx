@@ -32,7 +32,9 @@ import { PageHeader } from "@/components/shared/page-header";
 import { DashboardSkeleton } from "@/components/shared/page-skeleton";
 import { ErrorState } from "@/components/shared/empty-state";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { WorkflowGuide } from "@/components/shared/workflow-guide";
 import { useAuth } from "@/providers/auth-provider";
+import type { UserRole } from "@/types/common.types";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -52,6 +54,21 @@ const chartConfig = {
   disputes: { label: "Disputes", color: "var(--chart-3)" },
 };
 
+function getQuickAction(role: UserRole | undefined) {
+  switch (role) {
+    case "village_staff":
+      return { label: "Register citizen", href: "/citizens/register" };
+    case "village_chief":
+      return { label: "Verify residency", href: "/residency" };
+    case "administrator":
+      return { label: "Review role requests", href: "/role-requests" };
+    case "district_officer":
+      return { label: "View reports", href: "/reports" };
+    default:
+      return null;
+  }
+}
+
 export function DashboardView() {
   const { user } = useAuth();
 
@@ -67,6 +84,7 @@ function StaffDashboardView() {
   const stats = useDashboardStats();
   const activities = useRecentActivities();
   const chart = useChartData();
+  const quickAction = getQuickAction(user?.role);
 
   const isLoading = stats.isLoading || activities.isLoading || chart.isLoading;
   const isError = stats.isError || activities.isError || chart.isError;
@@ -90,10 +108,14 @@ function StaffDashboardView() {
         title={`Welcome back, ${user?.fullName?.split(" ")[0]}`}
         description="Village administration overview for Lesotho local government"
       >
-        <Button asChild>
-          <Link href="/citizens/register">Register Citizen</Link>
-        </Button>
+        {quickAction && (
+          <Button asChild>
+            <Link href={quickAction.href}>{quickAction.label}</Link>
+          </Button>
+        )}
       </PageHeader>
+
+      {user?.role && <WorkflowGuide role={user.role} />}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {statCards.map(({ key, label, icon: Icon, href }) => (

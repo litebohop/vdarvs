@@ -22,8 +22,9 @@ import { SearchInput, useTableParams } from "@/components/shared/search-input";
 import { PageSkeleton } from "@/components/shared/page-skeleton";
 import { EmptyState, ErrorState } from "@/components/shared/empty-state";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { WorkflowBanner } from "@/components/shared/workflow-banner";
 import { useAuth } from "@/providers/auth-provider";
-import { useLinkedCitizen } from "@/features/citizens/hooks/useCitizens";
+import { useLinkedCitizen, useChief } from "@/features/citizens/hooks/useCitizens";
 import { format } from "date-fns";
 import { capitalize } from "@/lib/utils/format";
 import { Check, X } from "lucide-react";
@@ -34,6 +35,7 @@ export function DocumentsTable() {
   const { search, setSearch, setPage, params } = useTableParams();
   const { user } = useAuth();
   const { data: linkedCitizen } = useLinkedCitizen();
+  const { data: chief } = useChief(linkedCitizen?.chiefId);
   const { data, isLoading, isError, refetch } = useDocuments(params);
   const approve = useApproveDocument();
   const reject = useRejectDocument();
@@ -57,8 +59,10 @@ export function DocumentsTable() {
         title={isCitizen ? "My documents" : "Official Documents"}
         description={
           isCitizen
-            ? "Your certificates, permits, and village endorsements"
-            : "Certificates, permits, and village endorsements"
+            ? "Request certificates and permits. Your village chief approves each request."
+            : canApprove
+              ? "Review and approve document requests from citizens in your village."
+              : "View document requests. Only the village chief can approve or reject."
         }
       >
         <div className="flex flex-wrap gap-2">
@@ -84,6 +88,20 @@ export function DocumentsTable() {
           />
         </div>
       </PageHeader>
+
+      {isCitizen && linkedCitizen && chief && (
+        <WorkflowBanner
+          title="Who approves your documents?"
+          message={`${chief.name}, your village chief in ${chief.village}, reviews pending requests. You will get a notification when a request is approved or rejected.`}
+        />
+      )}
+
+      {user?.role === "administrator" && (
+        <WorkflowBanner
+          title="Administrator view only"
+          message="Document approval is done by the village chief on this page when signed in as chief. Your job is role access on Role Requests."
+        />
+      )}
 
       {isCitizen && !linkedCitizen && (
         <EmptyState

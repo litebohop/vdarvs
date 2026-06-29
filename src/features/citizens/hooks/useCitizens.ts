@@ -5,6 +5,7 @@ import type { PaginationParams } from "@/types/common.types";
 import type { Citizen } from "@/types/entities.types";
 import { citizenService } from "@/lib/services/citizen.service";
 import { chiefService } from "@/lib/services/chief.service";
+import { fetchChiefById } from "@/lib/supabase/queries/chiefs";
 import type { AuditActor } from "@/lib/services/dashboard.service";
 import { queryKeys } from "@/lib/query-keys";
 import { fetchCitizenByEmail } from "@/lib/supabase/queries/citizens";
@@ -39,6 +40,14 @@ export function useChiefs() {
   return useQuery({
     queryKey: queryKeys.chiefs.list,
     queryFn: () => chiefService.getChiefs(),
+  });
+}
+
+export function useChief(id: string | undefined) {
+  return useQuery({
+    queryKey: [...queryKeys.chiefs.list, id],
+    queryFn: () => fetchChiefById(id!),
+    enabled: !!id,
   });
 }
 

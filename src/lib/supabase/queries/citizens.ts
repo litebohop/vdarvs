@@ -85,14 +85,19 @@ export async function fetchResidencyRequests(params?: PaginationParams) {
   const supabase = createClient();
   const { page, pageSize, from, to } = getPaginationRange(params);
 
-  const { data, error, count } = await supabase
+  let query = supabase
     .from("residency_requests")
     .select(
-      "*, citizens(first_name, last_name, national_id, village, district)",
+      "*, citizens(first_name, last_name, national_id, village, district, email)",
       { count: "exact" },
     )
-    .order("requested_at", { ascending: false })
-    .range(from, to);
+    .order("requested_at", { ascending: false });
+
+  if (params?.status) {
+    query = query.eq("status", params.status);
+  }
+
+  const { data, error, count } = await query.range(from, to);
 
   if (error) throw new Error(error.message);
 

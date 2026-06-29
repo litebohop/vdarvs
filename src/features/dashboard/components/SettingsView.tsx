@@ -1,8 +1,6 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { PageHeader } from "@/components/shared/page-header";
 import { ThemeSelector } from "@/components/shared/theme-selector";
 import { appConfig } from "@/config/app.config";
@@ -12,26 +10,22 @@ export function SettingsView() {
     <div className="space-y-8">
       <PageHeader
         title="Settings"
-        description="System configuration and preferences"
+        description="Application information and appearance"
       />
-      <div className="grid gap-6 max-w-2xl">
+      <div className="grid max-w-2xl gap-6">
         <Card>
           <CardHeader>
             <CardTitle>System</CardTitle>
             <CardDescription>General application settings</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Application Name</Label>
-                <p className="text-sm text-muted-foreground">{appConfig.fullName}</p>
-              </div>
+            <div>
+              <p className="text-sm font-medium">Application Name</p>
+              <p className="text-sm text-muted-foreground">{appConfig.fullName}</p>
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Country</Label>
-                <p className="text-sm text-muted-foreground">{appConfig.country}</p>
-              </div>
+            <div>
+              <p className="text-sm font-medium">Country</p>
+              <p className="text-sm text-muted-foreground">{appConfig.country}</p>
             </div>
           </CardContent>
         </Card>
@@ -42,26 +36,6 @@ export function SettingsView() {
           </CardHeader>
           <CardContent>
             <ThemeSelector />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Notifications</CardTitle>
-            <CardDescription>Alert preferences</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label>Email notifications</Label>
-              <Switch defaultChecked />
-            </div>
-            <div className="flex items-center justify-between">
-              <Label>Chief approval alerts</Label>
-              <Switch defaultChecked />
-            </div>
-            <div className="flex items-center justify-between">
-              <Label>Audit log digests</Label>
-              <Switch />
-            </div>
           </CardContent>
         </Card>
       </div>

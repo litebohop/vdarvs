@@ -12,3 +12,15 @@ export async function fetchChiefs(): Promise<Chief[]> {
   if (error) throw new Error(error.message);
   return (data as DbChief[]).map(mapChief);
 }
+
+export async function fetchChiefById(id: string): Promise<Chief | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("chiefs")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return data ? mapChief(data as DbChief) : null;
+}

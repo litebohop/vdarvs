@@ -36,4 +36,5 @@ export const supabaseAnimalRepository = {
     const { mapAnimal } = await import("@/lib/supabase/mappers");
     return mapAnimal(row);
   },
+  updateStatus: animalQueries.updateAnimalStatus,
 };

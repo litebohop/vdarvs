@@ -52,3 +52,19 @@ export async function fetchAnimalById(id: string): Promise<Animal | null> {
   if (error) throw new Error(error.message);
   return data ? mapAnimal(data as DbAnimal) : null;
 }
+
+export async function updateAnimalStatus(
+  id: string,
+  status: Animal["status"],
+): Promise<Animal> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("animals")
+    .update({ status })
+    .eq("id", id)
+    .select("*, citizens(first_name, last_name)")
+    .single();
+
+  if (error) throw new Error(error.message);
+  return mapAnimal(data as DbAnimal);
+}

@@ -40,3 +40,31 @@ export function useRegisterLand() {
     onError: (error: Error) => toast.error(error.message || "Failed to register land"),
   });
 }
+
+export function useApproveLand() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, actor }: { id: string; actor: AuditActor }) =>
+      landService.approveLand(id, actor),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.land.all });
+      toast.success("Land registration approved");
+    },
+    onError: (error: Error) =>
+      toast.error(error.message || "Failed to approve land"),
+  });
+}
+
+export function useRejectLand() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, actor }: { id: string; actor: AuditActor }) =>
+      landService.rejectLand(id, actor),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.land.all });
+      toast.success("Land registration rejected");
+    },
+    onError: (error: Error) =>
+      toast.error(error.message || "Failed to reject land"),
+  });
+}

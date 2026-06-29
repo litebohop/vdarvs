@@ -54,3 +54,25 @@ export async function fetchDisputeById(id: string): Promise<Dispute | null> {
   if (error) throw new Error(error.message);
   return data ? mapDispute(data as DbDispute) : null;
 }
+
+export async function updateDisputeStatus(
+  id: string,
+  status: Dispute["status"],
+): Promise<Dispute> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("disputes")
+    .update({
+      status,
+      resolved_at:
+        status === "approved" || status === "rejected"
+          ? new Date().toISOString()
+          : null,
+    })
+    .eq("id", id)
+    .select("*, citizens(first_name, last_name)")
+    .single();
+
+  if (error) throw new Error(error.message);
+  return mapDispute(data as DbDispute);
+}

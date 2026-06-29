@@ -50,3 +50,29 @@ export function useFileDispute() {
     onError: (error: Error) => toast.error(error.message || "Failed to file dispute"),
   });
 }
+
+export function useResolveDispute() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      status,
+      actor,
+    }: {
+      id: string;
+      status: "approved" | "rejected";
+      actor: AuditActor;
+    }) => disputeService.resolveDispute(id, status, actor),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.disputes.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats });
+      toast.success(
+        variables.status === "approved"
+          ? "Dispute resolved"
+          : "Dispute dismissed",
+      );
+    },
+    onError: (error: Error) =>
+      toast.error(error.message || "Failed to update dispute"),
+  });
+}

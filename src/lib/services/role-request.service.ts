@@ -7,7 +7,10 @@ import {
   fetchRoleRequests,
   updateRoleRequestStatus,
 } from "@/lib/supabase/queries/role-requests";
-import { updateProfileRole } from "@/lib/supabase/queries/profiles";
+import {
+  updateProfileRole,
+  fetchAdministratorProfiles,
+} from "@/lib/supabase/queries/profiles";
 import { insertNotification } from "@/lib/supabase/queries/notifications";
 import { auditService, type AuditActor } from "@/lib/services/dashboard.service";
 
@@ -41,6 +44,20 @@ export const roleRequestService = {
       village: input.village,
       district: input.district,
     });
+
+    const admins = await fetchAdministratorProfiles();
+    await Promise.all(
+      admins.map((admin) =>
+        insertNotification({
+          userId: admin.id,
+          title: "New role access request",
+          message: `${actor.userName} requested ${input.requestedRole.replace(/_/g, " ")} access`,
+          type: "action",
+          href: "/role-requests",
+        }),
+      ),
+    );
+
     return request;
   },
 

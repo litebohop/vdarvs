@@ -2,7 +2,13 @@ import type { PaginationParams } from "@/types/common.types";
 import type { Citizen } from "@/types/entities.types";
 import { citizenRepository } from "@/lib/repositories/citizen.repository";
 import { auditService, type AuditActor } from "@/lib/services/dashboard.service";
-import { updateProfile } from "@/lib/supabase/queries/profiles";
+import {
+  updateProfile,
+  fetchChiefProfileByChiefId,
+  fetchProfileByEmail,
+} from "@/lib/supabase/queries/profiles";
+import { insertNotification } from "@/lib/supabase/queries/notifications";
+import { fetchCitizenById } from "@/lib/supabase/queries/citizens";
 
 export const citizenService = {
   getCitizens(params?: PaginationParams) {
@@ -18,6 +24,7 @@ export const citizenService = {
     actor: AuditActor,
   ) {
     const citizen = await citizenRepository.create(data);
+    await citizenRepository.createResidencyRequest(citizen.id, citizen.chiefId);
     await auditService.createAuditLog({
       userId: actor.userId,
       userName: actor.userName,
@@ -28,6 +35,18 @@ export const citizenService = {
       village: citizen.address.village,
       district: citizen.address.district,
     });
+
+    const chiefProfile = await fetchChiefProfileByChiefId(citizen.chiefId);
+    if (chiefProfile) {
+      await insertNotification({
+        userId: chiefProfile.id,
+        title: "New residency verification required",
+        message: `${citizen.firstName} ${citizen.lastName} needs residency verification`,
+        type: "action",
+        href: "/residency",
+      });
+    }
+
     return citizen;
   },
 
@@ -36,7 +55,6 @@ export const citizenService = {
     actor: AuditActor,
   ) {
     const citizen = await this.registerCitizen(data, actor);
-    await citizenRepository.createResidencyRequest(citizen.id, citizen.chiefId);
     await updateProfile(actor.userId, {
       village: citizen.address.village,
       district: citizen.address.district,
@@ -69,6 +87,21 @@ export const citizenService = {
       village: request.village,
       district: request.district,
     });
+
+    const citizen = await fetchCitizenById(request.citizenId);
+    if (citizen?.email) {
+      const profile = await fetchProfileByEmail(citizen.email);
+      if (profile) {
+        await insertNotification({
+          userId: profile.id,
+          title: "Residency verified",
+          message: "Your village chief has verified your residency.",
+          type: "success",
+          href: "/dashboard",
+        });
+      }
+    }
+
     return request;
   },
 
@@ -88,6 +121,21 @@ export const citizenService = {
       village: request.village,
       district: request.district,
     });
+
+    const citizen = await fetchCitizenById(request.citizenId);
+    if (citizen?.email) {
+      const profile = await fetchProfileByEmail(citizen.email);
+      if (profile) {
+        await insertNotification({
+          userId: profile.id,
+          title: "Residency rejected",
+          message: "Your residency request was rejected. Contact your village chief.",
+          type: "warning",
+          href: "/onboarding",
+        });
+      }
+    }
+
     return request;
   },
 };

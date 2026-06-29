@@ -50,7 +50,7 @@ export const MAIN_NAV: NavItem[] = [
     title: "Residency Verification",
     href: "/residency",
     icon: UserCheck,
-    roles: ["village_chief", "district_officer", "administrator"],
+    roles: ["village_chief", "district_officer"],
   },
   {
     title: "Land Records",
@@ -126,7 +126,7 @@ export const ADMIN_NAV: NavItem[] = [
     roles: ["administrator"],
   },
   {
-    title: "Users",
+    title: "Staff Accounts",
     href: "/users",
     icon: Users,
     roles: ["administrator"],
