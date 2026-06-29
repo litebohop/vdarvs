@@ -5,7 +5,7 @@ import { z } from "zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CitizenSearchSelect } from "@/components/shared/citizen-search-select";
 import { PageHeader } from "@/components/shared/page-header";
 import { useFileDispute } from "@/features/disputes/hooks/useDisputes";
 import {
@@ -50,7 +51,10 @@ export function DisputeFileForm() {
     resolver: zodResolver(schema),
     defaultValues: {
       category: "boundary",
-      complainantId: linkedCitizen?.id ?? "",
+      complainantId: "",
+      respondentId: "",
+      title: "",
+      description: "",
     },
   });
 
@@ -61,19 +65,39 @@ export function DisputeFileForm() {
   const respondentOptions = citizens.filter((c) => c.id !== complainant?.id);
 
   useEffect(() => {
+    if (linkedCitizen?.id) {
+      form.setValue("complainantId", linkedCitizen.id, { shouldValidate: true });
+    }
+  }, [linkedCitizen?.id, form]);
+
+  useEffect(() => {
     const current = form.getValues("respondentId");
     if (current && current === complainant?.id) {
-      form.setValue("respondentId", "");
+      form.setValue("respondentId", "", { shouldValidate: true });
     }
   }, [complainant?.id, form]);
 
+  const onInvalid = (errors: FieldErrors<FormValues>) => {
+    const message =
+      errors.complainantId?.message ??
+      errors.respondentId?.message ??
+      errors.title?.message ??
+      errors.description?.message ??
+      "Please fix the form errors";
+    toast.error(String(message));
+  };
+
   const onSubmit = (values: FormValues) => {
-    if (!user || !complainant) {
+    const resolvedComplainant = isCitizen
+      ? linkedCitizen
+      : citizens.find((c) => c.id === values.complainantId);
+
+    if (!user || !resolvedComplainant) {
       toast.error("Select a valid complainant");
       return;
     }
 
-    const respondent = citizens.find((c) => c.id === values.respondentId);
+    const respondent = respondentOptions.find((c) => c.id === values.respondentId);
     if (!respondent) {
       toast.error("Select a valid respondent");
       return;
@@ -84,12 +108,12 @@ export function DisputeFileForm() {
         data: {
           title: values.title,
           description: values.description,
-          complainantId: complainant.id,
-          complainantName: `${complainant.firstName} ${complainant.lastName}`,
+          complainantId: resolvedComplainant.id,
+          complainantName: `${resolvedComplainant.firstName} ${resolvedComplainant.lastName}`,
           respondentName: `${respondent.firstName} ${respondent.lastName}`,
-          village: complainant.address.village,
-          district: complainant.address.district,
-          chiefId: complainant.chiefId,
+          village: resolvedComplainant.address.village,
+          district: resolvedComplainant.address.district,
+          chiefId: resolvedComplainant.chiefId,
           category: values.category,
           status: "pending",
         },
@@ -133,13 +157,15 @@ export function DisputeFileForm() {
           <CardTitle>Dispute details</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-4">
             {!isCitizen && (
               <div className="space-y-2">
                 <label className="text-sm font-medium">Complainant</label>
                 <Select
                   value={complainantId}
-                  onValueChange={(v) => form.setValue("complainantId", v)}
+                  onValueChange={(v) =>
+                    form.setValue("complainantId", v, { shouldValidate: true })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select citizen" />
@@ -152,11 +178,21 @@ export function DisputeFileForm() {
                     ))}
                   </SelectContent>
                 </Select>
+                {form.formState.errors.complainantId && (
+                  <p className="text-sm text-destructive">
+                    {form.formState.errors.complainantId.message}
+                  </p>
+                )}
               </div>
             )}
             <div className="space-y-2">
               <label className="text-sm font-medium">Title</label>
               <Input {...form.register("title")} />
+              {form.formState.errors.title && (
+                <p className="text-sm text-destructive">
+                  {form.formState.errors.title.message}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Category</label>
@@ -185,26 +221,34 @@ export function DisputeFileForm() {
                   No other citizens are registered in the system yet.
                 </p>
               ) : (
-                <Select
-                  value={form.watch("respondentId")}
-                  onValueChange={(v) => form.setValue("respondentId", v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select citizen in the system" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {respondentOptions.map((citizen) => (
-                      <SelectItem key={citizen.id} value={citizen.id}>
-                        {citizen.firstName} {citizen.lastName} · {citizen.address.village}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="respondentId"
+                  control={form.control}
+                  render={({ field }) => (
+                    <CitizenSearchSelect
+                      citizens={respondentOptions}
+                      value={field.value ?? ""}
+                      onValueChange={field.onChange}
+                      placeholder="Select citizen in the system"
+                      searchPlaceholder="Search citizens..."
+                    />
+                  )}
+                />
+              )}
+              {form.formState.errors.respondentId && (
+                <p className="text-sm text-destructive">
+                  {form.formState.errors.respondentId.message}
+                </p>
               )}
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Description</label>
               <Textarea rows={5} {...form.register("description")} />
+              {form.formState.errors.description && (
+                <p className="text-sm text-destructive">
+                  {form.formState.errors.description.message}
+                </p>
+              )}
             </div>
             <Button
               type="submit"
